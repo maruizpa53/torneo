@@ -21,7 +21,6 @@ const PLAYERS = {
 };
 
 const GC = { A: "#10b981", B: "#3b82f6", C: "#ef4444" };
-const GM = [{ p1: 0, p2: 1 }, { p1: 0, p2: 2 }, { p1: 1, p2: 2 }];
 
 const GROUP_MATCHES_EXCEL = {
   A: [
@@ -199,23 +198,39 @@ const I18N = {
 
 const LANGS = [{ code: "en", flag: "🇺🇸", label: "EN" }, { code: "es", flag: "🇨🇴", label: "ES" }, { code: "ko", flag: "🇰🇷", label: "KO" }];
 
+// ─── storage helpers (in-memory fallback when window.storage unavailable) ───
+const memStore = {};
+const storage = {
+  get: async (key, shared) => {
+    try { return await window.storage.get(key, shared); } catch { return memStore[key] ? { value: memStore[key] } : null; }
+  },
+  set: async (key, value, shared) => {
+    memStore[key] = value;
+    try { return await window.storage.set(key, value, shared); } catch { return null; }
+  },
+};
+
 function useData() {
   const [data, setData] = useState(initData());
   const [loaded, setLoaded] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const r = await window.storage.get("torneo-data", true);
+      const r = await storage.get("torneo-data", true);
       if (r && r.value) setData(JSON.parse(r.value));
     } catch {}
     setLoaded(true);
   }, []);
 
-  useEffect(() => { load(); const iv = setInterval(load, 5000); return () => clearInterval(iv); }, [load]);
+  useEffect(() => {
+    load();
+    const iv = setInterval(load, 5000);
+    return () => clearInterval(iv);
+  }, [load]);
 
   const save = useCallback(async (newData) => {
     setData(newData);
-    try { await window.storage.set("torneo-data", JSON.stringify(newData), true); } catch {}
+    try { await storage.set("torneo-data", JSON.stringify(newData), true); } catch {}
   }, []);
 
   return { data, save, loaded };
@@ -532,13 +547,11 @@ function ScheduleTab({ t }) {
         <SectionTitle icon="📋" title={t.tabs[0] === "programa" ? "Programa del Evento" : t.tabs[0] === "일정" ? "이벤트 일정" : "Event Schedule"} subtitle={t.date} />
         <div style={{ marginTop: 20, position: "relative", paddingLeft: 28 }}>
           <div style={{ position: "absolute", left: 11, top: 0, bottom: 0, width: 2, background: "rgba(255,255,255,0.06)", borderRadius: 1 }} />
-
           {timeline.map((block, bi) => (
             <div key={bi} style={{ position: "relative", marginBottom: bi < timeline.length - 1 ? 20 : 0 }}>
               <div style={{ position: "absolute", left: -22, top: 6, width: 14, height: 14, borderRadius: "50%", background: `${block.color}30`, border: `2px solid ${block.color}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <div style={{ width: 5, height: 5, borderRadius: "50%", background: block.color }} />
               </div>
-
               <div style={{ padding: "16px 20px", borderRadius: 14, background: block.type === "break" ? "rgba(120,113,108,0.08)" : `${block.color}08`, border: `1px solid ${block.color}18` }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: block.matches || block.sub ? 10 : 0 }}>
                   <span style={{ fontSize: 16 }}>{block.icon}</span>
@@ -547,13 +560,11 @@ function ScheduleTab({ t }) {
                   </div>
                   <div style={{ fontFamily: FM, fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" }}>{block.time} – {block.end}</div>
                 </div>
-
                 {block.sub && (
                   <div style={{ fontFamily: F, fontSize: 12, color: "rgba(255,255,255,0.35)", lineHeight: 1.6, marginLeft: 24 }}>
                     {block.sub.split("\n").map((line, li) => <div key={li}>{line}</div>)}
                   </div>
                 )}
-
                 {block.matches && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 6, marginLeft: 24 }}>
                     {block.matches.map(([mesa, phase, p1, p2, g], mi) => {
@@ -582,91 +593,59 @@ function ScheduleTab({ t }) {
   );
 }
 
-function AdminScoreInput({ label, value, onChange }) {
+// ─── Score input field ───────────────────────────────────────────────────────
+function ScoreField({ label, value, onChange }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <label style={{ fontFamily: F, fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em" }}>{label}</label>
-      <input type="number" min="0" value={value} onChange={e => onChange(e.target.value)} style={{ width: 70, padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "white", fontFamily: FM, fontSize: 14, fontWeight: 600, textAlign: "center", outline: "none" }} />
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <label style={{ fontFamily: F, fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.35)", letterSpacing: "0.12em" }}>{label}</label>
+      <input
+        type="number" min="0" value={value}
+        onChange={e => onChange(e.target.value)}
+        style={{ width: 72, padding: "10px 8px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "white", fontFamily: FM, fontSize: 16, fontWeight: 700, textAlign: "center", outline: "none", transition: "border 0.2s" }}
+        onFocus={e => e.target.style.border = "1px solid rgba(234,171,0,0.5)"}
+        onBlur={e => e.target.style.border = "1px solid rgba(255,255,255,0.12)"}
+      />
     </div>
   );
 }
 
-function AdminPanel({ t, data, save }) {
-  const [d, setD] = useState(JSON.parse(JSON.stringify(data)));
-  const [saved, setSaved] = useState(false);
-  const [adminTab, setAdminTab] = useState("groups");
-
-  useEffect(() => { setD(JSON.parse(JSON.stringify(data))); }, [data]);
-
-  const updateGroup = (g, mi, side, field, val) => {
-    const nd = JSON.parse(JSON.stringify(d));
-    nd.groups[g][mi][side][field] = val;
-    setD(nd); setSaved(false);
-  };
-  const updateKO = (id, field, val) => {
-    const nd = JSON.parse(JSON.stringify(d));
-    if (field === "p1name" || field === "p2name") nd.knockout[id][field] = val;
-    else { const [side, f] = field.split("."); nd.knockout[id][side][f] = val; }
-    setD(nd); setSaved(false);
-  };
-  const doSave = async () => { await save(d); setSaved(true); setTimeout(() => setSaved(false), 2000); };
+// ─── Match card inside admin ─────────────────────────────────────────────────
+function AdminMatchCard({ title, p1Label, p2Label, scoreData, onUpdate, color = "#eaab00", t }) {
+  const sc1 = scoreData?.p1 || emptyScore();
+  const sc2 = scoreData?.p2 || emptyScore();
+  const c1 = Number(sc1.car) || 0, c2 = Number(sc2.car) || 0;
+  const hasResult = c1 > 0 || c2 > 0;
+  const winnerColor = c1 > c2 ? "#10b981" : c2 > c1 ? "#10b981" : "#eaab00";
 
   return (
-    <div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
-        {[["groups", t.groupStage], ["knockout", t.knockoutStage]].map(([k, l]) => (
-          <button key={k} onClick={() => setAdminTab(k)} style={{ padding: "10px 20px", borderRadius: 10, border: "none", cursor: "pointer", background: adminTab === k ? "rgba(234,171,0,0.2)" : "rgba(255,255,255,0.05)", color: adminTab === k ? "#eaab00" : "rgba(255,255,255,0.4)", fontFamily: F, fontSize: 12, fontWeight: 700, transition: "all 0.2s" }}>{l}</button>
-        ))}
-        <div style={{ flex: 1 }} />
-        <button onClick={doSave} style={{ padding: "10px 24px", borderRadius: 10, border: "none", cursor: "pointer", background: saved ? "rgba(16,185,129,0.2)" : "linear-gradient(135deg, #eaab00, #e87722)", color: saved ? "#10b981" : "#0a0f1a", fontFamily: F, fontSize: 13, fontWeight: 800, transition: "all 0.3s" }}>
-          {saved ? t.saved : t.save}
-        </button>
+    <div style={{ borderRadius: 16, border: `1px solid ${color}20`, background: `linear-gradient(135deg, ${color}06, rgba(255,255,255,0.02))`, overflow: "hidden", marginBottom: 12 }}>
+      {/* header */}
+      <div style={{ padding: "12px 20px", borderBottom: `1px solid ${color}12`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={{ fontFamily: F, fontSize: 11, fontWeight: 700, color: color, letterSpacing: "0.1em" }}>{title}</span>
+        {hasResult && (
+          <span style={{ fontFamily: FM, fontSize: 13, fontWeight: 800, color: winnerColor }}>
+            {c1} – {c2}
+          </span>
+        )}
       </div>
 
-      {adminTab === "groups" && Object.entries(GROUP_MATCHES_EXCEL).map(([g, matches]) => (
-        <div key={g} style={{ marginBottom: 32 }}>
-          <h3 style={{ fontFamily: FD, fontSize: 20, fontWeight: 800, color: GC[g], margin: "0 0 16px" }}>{t[`group${g}`]}</h3>
-          {matches.map((m, mi) => (
-            <div key={mi} style={{ padding: 20, borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", marginBottom: 12 }}>
-              <div style={{ fontFamily: F, fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>{t.match} {mi + 1}</div>
-              {["p1", "p2"].map(side => {
-                const pName = side === "p1" ? m.p1 : m.p2;
-                const sc = d.groups[g]?.[mi]?.[side] || emptyScore();
-                return (
-                  <div key={side} style={{ marginBottom: side === "p1" ? 12 : 0 }}>
-                    <div style={{ fontFamily: F, fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.8)", marginBottom: 8 }}>{pName}</div>
-                    <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                      <AdminScoreInput label={t.car} value={sc.car} onChange={v => updateGroup(g, mi, side, "car", v)} />
-                      <AdminScoreInput label={t.ent} value={sc.ent} onChange={v => updateGroup(g, mi, side, "ent", v)} />
-                      <AdminScoreInput label={t.ms} value={sc.ms} onChange={v => updateGroup(g, mi, side, "ms", v)} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-      ))}
-
-      {adminTab === "knockout" && KO_IDS.map(id => {
-        const labels = { QF1: t.qf1, QF2: t.qf2, SF1: t.sf1, SF2: t.sf2, FINAL: t.fin };
-        const kd = d.knockout[id] || {};
+      {/* players */}
+      {[
+        { side: "p1", label: p1Label, sc: sc1 },
+        { side: "p2", label: p2Label, sc: sc2 },
+      ].map(({ side, label, sc }) => {
+        const isWinner = hasResult && ((side === "p1" && c1 > c2) || (side === "p2" && c2 > c1));
         return (
-          <div key={id} style={{ padding: 20, borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", marginBottom: 12 }}>
-            <div style={{ fontFamily: F, fontSize: 13, fontWeight: 700, color: "#eaab00", marginBottom: 16 }}>{labels[id]}</div>
-            {["p1", "p2"].map(side => (
-              <div key={side} style={{ marginBottom: side === "p1" ? 16 : 0 }}>
-                <div style={{ marginBottom: 8 }}>
-                  <label style={{ fontFamily: F, fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em" }}>{side === "p1" ? t.p1name : t.p2name}</label>
-                  <input type="text" value={kd[`${side}name`] || ""} onChange={e => updateKO(id, `${side}name`, e.target.value)} placeholder="..." style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "white", fontFamily: F, fontSize: 13, fontWeight: 600, outline: "none", marginTop: 4 }} />
-                </div>
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <AdminScoreInput label={t.car} value={kd[side]?.car || ""} onChange={v => updateKO(id, `${side}.car`, v)} />
-                  <AdminScoreInput label={t.ent} value={kd[side]?.ent || ""} onChange={v => updateKO(id, `${side}.ent`, v)} />
-                  <AdminScoreInput label={t.ms} value={kd[side]?.ms || ""} onChange={v => updateKO(id, `${side}.ms`, v)} />
-                </div>
-              </div>
-            ))}
+          <div key={side} style={{ padding: "14px 20px", borderBottom: side === "p1" ? `1px solid rgba(255,255,255,0.04)` : "none", background: isWinner ? "rgba(16,185,129,0.05)" : "transparent" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              {isWinner && <span style={{ fontSize: 12 }}>🏆</span>}
+              <span style={{ fontFamily: F, fontSize: 13, fontWeight: 700, color: isWinner ? "#10b981" : "rgba(255,255,255,0.8)" }}>{label}</span>
+            </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <ScoreField label={t.car} value={sc.car} onChange={v => onUpdate(side, "car", v)} />
+              <ScoreField label={t.ent} value={sc.ent} onChange={v => onUpdate(side, "ent", v)} />
+              <ScoreField label={t.ms}  value={sc.ms}  onChange={v => onUpdate(side, "ms",  v)} />
+            </div>
           </div>
         );
       })}
@@ -674,6 +653,128 @@ function AdminPanel({ t, data, save }) {
   );
 }
 
+// ─── Admin Panel ─────────────────────────────────────────────────────────────
+function AdminPanel({ t, data, save }) {
+  const [d, setD] = useState(() => JSON.parse(JSON.stringify(data)));
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [adminTab, setAdminTab] = useState("groups");
+
+  // keep local state in sync when shared data arrives (polling)
+  useEffect(() => { setD(JSON.parse(JSON.stringify(data))); }, [data]);
+
+  const updateGroup = (g, mi, side, field, val) => {
+    setD(prev => {
+      const nd = JSON.parse(JSON.stringify(prev));
+      nd.groups[g][mi][side][field] = val;
+      return nd;
+    });
+    setSaved(false);
+  };
+
+  const updateKO = (id, side, field, val) => {
+    setD(prev => {
+      const nd = JSON.parse(JSON.stringify(prev));
+      if (!nd.knockout[id]) nd.knockout[id] = { p1name: "", p2name: "", p1: emptyScore(), p2: emptyScore() };
+      if (field === "name") nd.knockout[id][`${side}name`] = val;
+      else nd.knockout[id][side][field] = val;
+      return nd;
+    });
+    setSaved(false);
+  };
+
+  const doSave = async () => {
+    setSaving(true);
+    await save(d);
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  const koLabels = {
+    QF1: { title: t.qf1, p1: t.p3rd, p2: t.p6th, color: "#a855f7" },
+    QF2: { title: t.qf2, p1: t.p4th, p2: t.p5th, color: "#a855f7" },
+    SF1: { title: t.sf1, p1: t.p1st, p2: t.qfW,  color: "#3b82f6" },
+    SF2: { title: t.sf2, p1: t.p2nd, p2: t.qfW,  color: "#3b82f6" },
+    FINAL: { title: t.fin, p1: t.sf1W, p2: t.sf2W, color: "#eaab00" },
+  };
+
+  return (
+    <div>
+      {/* tab bar + save button */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 28, alignItems: "center" }}>
+        {[["groups", "🎯 " + t.groupStage], ["knockout", "⚡ " + t.knockoutStage]].map(([k, l]) => (
+          <button key={k} onClick={() => setAdminTab(k)} style={{ padding: "10px 20px", borderRadius: 10, border: "none", cursor: "pointer", background: adminTab === k ? "rgba(234,171,0,0.18)" : "rgba(255,255,255,0.05)", color: adminTab === k ? "#eaab00" : "rgba(255,255,255,0.4)", fontFamily: F, fontSize: 12, fontWeight: 700, transition: "all 0.2s" }}>{l}</button>
+        ))}
+        <div style={{ flex: 1 }} />
+        <button
+          onClick={doSave}
+          disabled={saving}
+          style={{ padding: "10px 28px", borderRadius: 10, border: "none", cursor: saving ? "wait" : "pointer", background: saved ? "rgba(16,185,129,0.18)" : "linear-gradient(135deg, #eaab00, #e87722)", color: saved ? "#10b981" : "#0a0f1a", fontFamily: F, fontSize: 13, fontWeight: 800, transition: "all 0.3s", opacity: saving ? 0.7 : 1 }}>
+          {saving ? "⏳" : saved ? "✓ " + t.saved : "💾 " + t.save}
+        </button>
+      </div>
+
+      {/* ── GROUP STAGE ── */}
+      {adminTab === "groups" && Object.entries(GROUP_MATCHES_EXCEL).map(([g, matches]) => (
+        <div key={g} style={{ marginBottom: 36 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: `${GC[g]}20`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FD, fontSize: 16, fontWeight: 900, color: GC[g] }}>{g}</div>
+            <h3 style={{ fontFamily: FD, fontSize: 20, fontWeight: 800, color: GC[g], margin: 0 }}>{t[`group${g}`]}</h3>
+          </div>
+          {matches.map((m, mi) => (
+            <AdminMatchCard
+              key={mi}
+              title={`${t.match} ${mi + 1}`}
+              p1Label={m.p1}
+              p2Label={m.p2}
+              scoreData={d.groups[g]?.[mi] || emptyMatch()}
+              onUpdate={(side, field, val) => updateGroup(g, mi, side, field, val)}
+              color={GC[g]}
+              t={t}
+            />
+          ))}
+        </div>
+      ))}
+
+      {/* ── KNOCKOUT ── */}
+      {adminTab === "knockout" && KO_IDS.map(id => {
+        const lbl = koLabels[id];
+        const kd = d.knockout[id] || { p1name: "", p2name: "", p1: emptyScore(), p2: emptyScore() };
+        return (
+          <div key={id} style={{ marginBottom: 28 }}>
+            {/* player name inputs */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+              {["p1", "p2"].map(side => (
+                <div key={side}>
+                  <label style={{ fontFamily: F, fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em" }}>{side === "p1" ? t.p1name : t.p2name}</label>
+                  <input
+                    type="text"
+                    value={kd[`${side}name`] || ""}
+                    onChange={e => updateKO(id, side, "name", e.target.value)}
+                    placeholder="..."
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "white", fontFamily: F, fontSize: 13, fontWeight: 600, outline: "none", marginTop: 4, boxSizing: "border-box" }}
+                  />
+                </div>
+              ))}
+            </div>
+            <AdminMatchCard
+              title={lbl.title}
+              p1Label={kd.p1name || lbl.p1}
+              p2Label={kd.p2name || lbl.p2}
+              scoreData={kd}
+              onUpdate={(side, field, val) => updateKO(id, side, field, val)}
+              color={lbl.color}
+              t={t}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Login ────────────────────────────────────────────────────────────────────
 function LoginScreen({ t, onLogin }) {
   const [token, setToken] = useState("");
   const [error, setError] = useState(false);
@@ -692,6 +793,7 @@ function LoginScreen({ t, onLogin }) {
   );
 }
 
+// ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [lang, setLang] = useState("es");
   const [tabIdx, setTabIdx] = useState(0);
@@ -700,12 +802,17 @@ export default function App() {
   const { data, save, loaded } = useData();
   const t = I18N[lang];
 
-  if (!loaded) return <div style={{ minHeight: "100vh", background: "#0a0f1a", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.3)", fontFamily: F }}>Loading...</div>;
+  if (!loaded) return (
+    <div style={{ minHeight: "100vh", background: "#0a0f1a", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.3)", fontFamily: F, fontSize: 14 }}>
+      Cargando…
+    </div>
+  );
 
   return (
     <div style={{ minHeight: "100vh", background: "#0a0f1a", color: "white" }}>
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
+      {/* ── HERO ── */}
       <div style={{ position: "relative", overflow: "hidden", padding: page === "admin" ? "40px 20px 30px" : "80px 20px 60px", background: "linear-gradient(135deg, #0a0f1a 0%, #0f1729 40%, #1a1a2e 70%, #0a0f1a 100%)" }}>
         <div style={{ position: "absolute", inset: 0, opacity: 0.04, backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "40px 40px" }} />
         <div style={{ position: "absolute", top: "-50%", left: "-20%", width: 600, height: 600, background: "radial-gradient(circle, rgba(234,171,0,0.08), transparent 70%)", borderRadius: "50%" }} />
@@ -740,12 +847,13 @@ export default function App() {
                   </div>
                 ))}
               </div>
-              <button onClick={() => setPage("admin")} style={{ padding: "6px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.2)", fontFamily: F, fontSize: 10, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>🔒 Admin</button>
+              <button onClick={() => setPage("admin")} style={{ padding: "6px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.2)", fontFamily: F, fontSize: 10, fontWeight: 600, cursor: "pointer" }}>🔒 Admin</button>
             </>
           )}
         </div>
       </div>
 
+      {/* ── PUBLIC TABS ── */}
       {page === "public" && (
         <>
           <div style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(10,15,26,0.92)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -764,6 +872,7 @@ export default function App() {
         </>
       )}
 
+      {/* ── ADMIN ── */}
       {page === "admin" && (
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 20px 80px" }}>
           {authed ? <AdminPanel t={t} data={data} save={save} /> : <LoginScreen t={t} onLogin={() => setAuthed(true)} />}
