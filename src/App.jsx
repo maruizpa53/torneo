@@ -35,9 +35,9 @@ const GROUP_MATCHES_EXCEL = {
     { p1: "MYUNWOO CHO", p2: "ALEXANDER SALAZAR" },
   ],
   C: [
-    { p1: "MARCO ZANETTI", p2: "JOSE JUAN GARCIA" },
-    { p1: "MARCO ZANETTI", p2: "HUBERNEY CATAÑO" },
     { p1: "JOSE JUAN GARCIA", p2: "HUBERNEY CATAÑO" },
+    { p1: "MARCO ZANETTI", p2: "HUBERNEY CATAÑO" },
+    { p1: "MARCO ZANETTI", p2: "JOSE JUAN GARCIA" },
   ],
 };
 
@@ -487,7 +487,7 @@ function ScheduleTab({ t }) {
     { time: "2:15 PM", end: "3:30 PM", type: "round", color: "#3b82f6", icon: "🔵", title: `${t.round} 1 — ${t.day1}`, matches: [
       [`${t.table} 1`, `${t.groupTitle} A · M1`, "JUNGHAN HEO", "ALEXANDER MUÑOZ", "A"],
       [`${t.table} 2`, `${t.groupTitle} B · M1`, "MYUNWOO CHO", "ARLEY MONTOYA", "B"],
-      [`${t.table} 3`, `${t.groupTitle} C · M1`, "MARCO ZANETTI", "JOSE JUAN GARCIA", "C"],
+      [`${t.table} 3`, `${t.groupTitle} C · M1`, "JOSE JUAN GARCIA", "HUBERNEY CATAÑO", "C"],
     ]},
     { time: "3:30 PM", end: "4:45 PM", type: "round", color: "#3b82f6", icon: "🔵", title: `${t.round} 2`, matches: [
       [`${t.table} 1`, `${t.groupTitle} A · M2`, "ALEJANDRO PIZA", "ALEXANDER MUÑOZ", "A"],
@@ -498,7 +498,7 @@ function ScheduleTab({ t }) {
     { time: "5:00 PM", end: "6:15 PM", type: "round", color: "#3b82f6", icon: "🔵", title: `${t.round} 3`, matches: [
       [`${t.table} 1`, `${t.groupTitle} A · M3`, "JUNGHAN HEO", "ALEJANDRO PIZA", "A"],
       [`${t.table} 2`, `${t.groupTitle} B · M3`, "MYUNWOO CHO", "ALEXANDER SALAZAR", "B"],
-      [`${t.table} 3`, `${t.groupTitle} C · M3`, "JOSE JUAN GARCIA", "HUBERNEY CATAÑO", "C"],
+      [`${t.table} 3`, `${t.groupTitle} C · M3`, "MARCO ZANETTI", "JOSE JUAN GARCIA", "C"],
     ]},
     { time: "6:15 PM", end: "6:30 PM", type: "event", color: "#eaab00", icon: "📊", title: t.ranking, sub: `${t.rankingSub}\n${t.rankDetail}` },
     { time: "6:30 PM", end: "7:45 PM", type: "round", color: "#ef4444", icon: "🔴", title: t.crosses, sub: t.crossesSub, matches: [
