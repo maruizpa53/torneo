@@ -304,10 +304,12 @@ function calcStandings(data) {
   });
 
   return Object.values(stats).sort((a, b) => {
-    // 1° Lugar en el grupo (1° > 2° > 3°)
+    // 1° Puntos totales
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    // 2° Lugar en el grupo (1° > 2° > 3°)
     const ra = groupRanks[a.name] || 9, rb = groupRanks[b.name] || 9;
     if (ra !== rb) return ra - rb;
-    // 2° Promedio General dentro del mismo lugar de grupo
+    // 3° Promedio General dentro del mismo lugar de grupo
     const avgA = a.totalEnt > 0 ? a.totalCar / a.totalEnt : 0;
     const avgB = b.totalEnt > 0 ? b.totalCar / b.totalEnt : 0;
     if (Math.abs(avgB - avgA) > 0.000001) return avgB - avgA;
