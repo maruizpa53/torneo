@@ -66,10 +66,10 @@ function initData() {
       ],
     },
     knockout: {
-      QF1: { p1name: "", p2name: "", p1: emptyScore(), p2: emptyScore() },
-      QF2: { p1name: "", p2name: "", p1: emptyScore(), p2: emptyScore() },
-      SF1: { p1name: "", p2name: "", p1: emptyScore(), p2: emptyScore() },
-      SF2: { p1name: "", p2name: "", p1: emptyScore(), p2: emptyScore() },
+      QF1: { p1name: "MARCO ZANETTI", p2name: "HUBERNEY CATAÑO", p1: { car: "35", ent: "25", ms: "9" }, p2: { car: "27", ent: "25", ms: "3" } },
+      QF2: { p1name: "JUNGHAN HEO", p2name: "ALEXANDER SALAZAR", p1: { car: "34", ent: "24", ms: "7" }, p2: { car: "35", ent: "24", ms: "7" } },
+      SF1: { p1name: "ALEJANDRO PIZA", p2name: "ALEXANDER SALAZAR", p1: emptyScore(), p2: emptyScore() },
+      SF2: { p1name: "MYUNWOO CHO", p2name: "MARCO ZANETTI", p1: emptyScore(), p2: emptyScore() },
       FINAL: { p1name: "", p2name: "", p1: emptyScore(), p2: emptyScore() },
     },
   };
