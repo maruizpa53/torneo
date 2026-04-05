@@ -28,14 +28,14 @@ const PLAYERS_CALI = {
     { name: "ANDRES RESTREPO", ck: "colombia", flag: "🇨🇴" },
   ],
   B: [
-    { name: "MYUNWOO CHO", ck: "korea", flag: "🇰🇷" },
-    { name: "ARLEY GALEANO", ck: "colombia", flag: "🇨🇴" },
-    { name: "MAURICIO AGUILAR", ck: "colombia", flag: "🇨🇴" },
-  ],
-  C: [
     { name: "JUNGHAN HEO", ck: "korea", flag: "🇰🇷" },
     { name: "CARLOS CAMPIÑO", ck: "colombia", flag: "🇨🇴" },
     { name: "SANTIAGO OCAMPO", ck: "colombia", flag: "🇨🇴" },
+  ],
+  C: [
+    { name: "MYUNWOO CHO", ck: "korea", flag: "🇰🇷" },
+    { name: "ARLEY GALEANO", ck: "colombia", flag: "🇨🇴" },
+    { name: "MAURICIO AGUILAR", ck: "colombia", flag: "🇨🇴" },
   ],
 };
 
@@ -64,14 +64,14 @@ const MATCHES_CALI = {
     { p1: "MARCO ZANETTI", p2: "HARRY ZAMORA" },
   ],
   B: [
-    { p1: "ARLEY GALEANO", p2: "MAURICIO AGUILAR" },
-    { p1: "MYUNWOO CHO", p2: "MAURICIO AGUILAR" },
-    { p1: "MYUNWOO CHO", p2: "ARLEY GALEANO" },
-  ],
-  C: [
     { p1: "CARLOS CAMPIÑO", p2: "SANTIAGO OCAMPO" },
     { p1: "JUNGHAN HEO", p2: "SANTIAGO OCAMPO" },
     { p1: "JUNGHAN HEO", p2: "CARLOS CAMPIÑO" },
+  ],
+  C: [
+    { p1: "ARLEY GALEANO", p2: "MAURICIO AGUILAR" },
+    { p1: "MYUNWOO CHO", p2: "MAURICIO AGUILAR" },
+    { p1: "MYUNWOO CHO", p2: "ARLEY GALEANO" },
   ],
 };
 
@@ -173,12 +173,51 @@ function initMedData() {
   };
 }
 
-function initEmptyData() {
+function initCaliData() {
   return {
     groups: {
-      A: [emptyMatch(), emptyMatch(), emptyMatch()],
-      B: [emptyMatch(), emptyMatch(), emptyMatch()],
-      C: [emptyMatch(), emptyMatch(), emptyMatch()],
+      A: [
+        {
+          p1: { car: "35", ent: "29", ms: "7" },
+          p2: { car: "35", ent: "29", ms: "5" },
+        },
+        {
+          p1: { car: "35", ent: "21", ms: "5" },
+          p2: { car: "26", ent: "21", ms: "4" },
+        },
+        {
+          p1: { car: "35", ent: "12", ms: "6" },
+          p2: { car: "20", ent: "12", ms: "5" },
+        },
+      ],
+      B: [
+        {
+          p1: { car: "35", ent: "26", ms: "6" },
+          p2: { car: "27", ent: "26", ms: "6" },
+        },
+        {
+          p1: { car: "35", ent: "24", ms: "6" },
+          p2: { car: "32", ent: "24", ms: "5" },
+        },
+        {
+          p1: { car: "35", ent: "13", ms: "9" },
+          p2: { car: "17", ent: "13", ms: "6" },
+        },
+      ],
+      C: [
+        {
+          p1: { car: "35", ent: "26", ms: "6" },
+          p2: { car: "22", ent: "26", ms: "6" },
+        },
+        {
+          p1: { car: "35", ent: "14", ms: "5" },
+          p2: { car: "13", ent: "14", ms: "4" },
+        },
+        {
+          p1: { car: "35", ent: "20", ms: "6" },
+          p2: { car: "33", ent: "20", ms: "5" },
+        },
+      ],
     },
     knockout: {
       QF1: { p1name: "", p2name: "", p1: emptyScore(), p2: emptyScore() },
@@ -224,7 +263,7 @@ const storage = {
 
 function useData(city) {
   const skey = STORAGE_KEYS[city];
-  const initFn = city === "medellin" ? initMedData : initEmptyData;
+  const initFn = city === "medellin" ? initMedData : initCaliData;
   const [data, setData] = useState(initFn);
   const [loaded, setLoaded] = useState(false);
 
@@ -241,7 +280,7 @@ function useData(city) {
   }, [skey]);
 
   useEffect(() => {
-    setData(city === "medellin" ? initMedData() : initEmptyData());
+    setData(city === "medellin" ? initMedData() : initCaliData());
     setLoaded(false);
     let cancelled = false;
     const doLoad = async () => {
