@@ -3,96 +3,109 @@ import { useState } from "react";
 const F = "system-ui, -apple-system, sans-serif";
 
 const HC_COLORS = {
-  17: { bg: "rgba(232,160,32,0.18)", color: "#e8a020" },
-  16: { bg: "rgba(239,159,39,0.18)", color: "#EF9F27" },
+  17: { bg: "rgba(232,160,32,0.18)",  color: "#e8a020" },
+  16: { bg: "rgba(239,159,39,0.18)",  color: "#EF9F27" },
   15: { bg: "rgba(192,132,252,0.18)", color: "#c084fc" },
-  14: { bg: "rgba(96,165,250,0.18)", color: "#60a5fa" },
-  13: { bg: "rgba(45,212,191,0.18)", color: "#2dd4bf" },
-  11: { bg: "rgba(74,222,128,0.18)", color: "#4ade80" },
-  10: { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" },
+  14: { bg: "rgba(96,165,250,0.18)",  color: "#60a5fa" },
+  13: { bg: "rgba(45,212,191,0.18)",  color: "#2dd4bf" },
+  12: { bg: "rgba(20,184,166,0.18)",  color: "#14b8a6" },
+  11: { bg: "rgba(74,222,128,0.18)",  color: "#4ade80" },
+  10: { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.55)" },
   9:  { bg: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.38)" },
-  0:  { bg: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.25)" },
+  8:  { bg: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.28)" },
 };
 
 const PLAYERS = [
-  { name: "Richard", hc: 17 },
-  { name: "Miguel", hc: 17 },
-  { name: "Kakaroto", hc: 16 },
-  { name: "Nando", hc: 16 },
-  { name: "David Díaz", hc: 15 },
-  { name: "Antonio", hc: 15 },
-  { name: "Gato", hc: 14 },
-  { name: "Cristian Marín", hc: 14 },
-  { name: "Jose Soto", hc: 14 },
-  { name: "Jhon Guerrero", hc: 14 },
-  { name: "Jorge Roncancio", hc: 14 },
-  { name: "Hamilton", hc: 14 },
-  { name: "Nicolás Neira", hc: 14 },
-  { name: "William", hc: 13 },
-  { name: "Albeiro", hc: 13 },
-  { name: "Giovanny", hc: 13 },
-  { name: "Diego Coronado", hc: 11 },
-  { name: "Diego Salazar", hc: 11 },
-  { name: "Andrés", hc: 11 },
-  { name: "Cristian Barbosa", hc: 11 },
-  { name: "Carlos Barbosa", hc: 11 },
-  { name: "Jhon Barbosa", hc: 11 },
-  { name: "Edwin Wilches", hc: 11 },
-  { name: "Jeisson", hc: 11 },
-  { name: "Yesid", hc: 11 },
-  { name: "Oscar", hc: 11 },
-  { name: "Leonardo", hc: 10 },
-  { name: "Alex Pardo", hc: 9 },
-  { name: "Jhon Pardo", hc: 9 },
-  { name: "Cristian Sierra", hc: 9 },
-  { name: "Juan Diego", hc: 9 },
-  { name: "César", hc: 9 },
-  { name: "Mauricio Velásquez", hc: 9 },
-  { name: "Por definir", hc: 0 },
-  { name: "Por definir", hc: 0 },
-  { name: "Por definir", hc: 0 },
+  { name: "Richard",            hc: 17 },
+  { name: "Miguel",             hc: 17 },
+  { name: "Sayayin",            hc: 17 },
+  { name: "Kakaroto",           hc: 16 },
+  { name: "Nando",              hc: 16 },
+  { name: "David Díaz",         hc: 15 },
+  { name: "Antonio",            hc: 15 },
+  { name: "Gato",               hc: 15 },
+  { name: "Arturo",             hc: 15 },
+  { name: "Cristian Marín",     hc: 14 },
+  { name: "Jose Soto",          hc: 14 },
+  { name: "Jhon Guerrero",      hc: 14 },
+  { name: "Jorge Roncancio",    hc: 14 },
+  { name: "Hamilton",           hc: 14 },
+  { name: "Nicolás",            hc: 14 },
+  { name: "William",            hc: 13 },
+  { name: "Albeiro",            hc: 13 },
+  { name: "Giovanny",           hc: 13 },
+  { name: "Javier",             hc: 12 },
+  { name: "Diego Coronado",     hc: 11 },
+  { name: "Diego Salazar",      hc: 11 },
+  { name: "Andrés",             hc: 11 },
+  { name: "Jhon Barbosa",       hc: 11 },
+  { name: "Jeisson",            hc: 11 },
+  { name: "Yesid",              hc: 11 },
+  { name: "Oscar",              hc: 11 },
+  { name: "Julio",              hc: 11 },
+  { name: "Mauricio Domínguez", hc: 11 },
+  { name: "Leonardo",           hc: 10 },
+  { name: "Cristian Barbosa",   hc: 10 },
+  { name: "Carlos Barbosa",     hc: 10 },
+  { name: "Chalo",              hc: 10 },
+  { name: "Alex Pardo",         hc: 9  },
+  { name: "Jhon Pardo",         hc: 9  },
+  { name: "Cristian Sierra",    hc: 9  },
+  { name: "Juan Diego",         hc: 9  },
+  { name: "César",              hc: 9  },
+  { name: "Edwin Wilches",      hc: 9  },
+  { name: "Russi",              hc: 9  },
+  { name: "Mauricio Velázquez", hc: 8  },
 ];
+
+// Metro: Richard, Miguel, Sayayin, Kakaroto, Nando, David Díaz, Antonio
+// Miguel juega a las 7:10 PM — los otros 6 del Metro arrancan a las 6:10 PM
+// Nunca Metro vs Metro
+// 40 jugadores, 7 mesas x 3 rondas = 42 cupos → 2 jugadores del Galán juegan 2 veces
 
 const ROUNDS = [
   {
-    time: "6:00 PM",
+    time: "6:10 PM",
     color: "#e8a020",
     label: "Ronda 1",
     matches: [
-      { p1: { name: "Richard", hc: 17 },     p2: { name: "Gato", hc: 14 },           mesa: 1 },
-      { p1: { name: "Kakaroto", hc: 16 },     p2: { name: "Jhon Guerrero", hc: 14 },  mesa: 2 },
-      { p1: { name: "Nando", hc: 16 },        p2: { name: "Jorge Roncancio", hc: 14 },mesa: 3 },
-      { p1: { name: "David Díaz", hc: 15 },   p2: { name: "Hamilton", hc: 14 },       mesa: 4 },
-      { p1: { name: "Antonio", hc: 15 },      p2: { name: "Nicolás Neira", hc: 14 },  mesa: 5 },
-      { p1: { name: "William", hc: 13 },      p2: { name: "Diego Coronado", hc: 11 }, mesa: 6 },
-      { p1: { name: "Jose Soto", hc: 14 },    p2: { name: "Edwin Wilches", hc: 11 },  mesa: 7 },
+      { p1: { name: "Richard",    hc: 17 }, p2: { name: "Hamilton",        hc: 14 }, mesa: 1 },
+      { p1: { name: "Sayayin",    hc: 17 }, p2: { name: "Jorge Roncancio", hc: 14 }, mesa: 2 },
+      { p1: { name: "Kakaroto",   hc: 16 }, p2: { name: "Jhon Guerrero",   hc: 14 }, mesa: 3 },
+      { p1: { name: "Nando",      hc: 16 }, p2: { name: "William",         hc: 13 }, mesa: 4 },
+      { p1: { name: "David Díaz", hc: 15 }, p2: { name: "Albeiro",         hc: 13 }, mesa: 5 },
+      { p1: { name: "Antonio",    hc: 15 }, p2: { name: "Giovanny",        hc: 13 }, mesa: 6 },
+      { p1: { name: "Gato",       hc: 15 }, p2: { name: "Javier",          hc: 12 }, mesa: 7 },
     ],
   },
   {
-    time: "6:30 PM",
+    time: "6:40 PM",
     color: "#60a5fa",
     label: "Ronda 2",
     matches: [
-      { p1: { name: "Albeiro", hc: 13 },       p2: { name: "Cristian Barbosa", hc: 11 }, mesa: 1 },
-      { p1: { name: "Giovanny", hc: 13 },       p2: { name: "Carlos Barbosa", hc: 11 },  mesa: 2 },
-      { p1: { name: "Cristian Marín", hc: 14 }, p2: { name: "Jhon Barbosa", hc: 11 },    mesa: 3 },
-      { p1: { name: "Diego Salazar", hc: 11 },  p2: { name: "Alex Pardo", hc: 9 },       mesa: 4 },
-      { p1: { name: "Andrés", hc: 11 },         p2: { name: "Jhon Pardo", hc: 9 },       mesa: 5 },
-      { p1: { name: "Jeisson", hc: 11 },        p2: { name: "Cristian Sierra", hc: 9 },  mesa: 6 },
-      { p1: { name: "Yesid", hc: 11 },          p2: { name: "Juan Diego", hc: 9 },       mesa: 7 },
+      { p1: { name: "Arturo",         hc: 15 }, p2: { name: "Diego Coronado",  hc: 11 }, mesa: 1 },
+      { p1: { name: "Cristian Marín", hc: 14 }, p2: { name: "Diego Salazar",   hc: 11 }, mesa: 2 },
+      { p1: { name: "Jose Soto",      hc: 14 }, p2: { name: "Andrés",          hc: 11 }, mesa: 3 },
+      { p1: { name: "Nicolás",        hc: 14 }, p2: { name: "Jeisson",         hc: 11 }, mesa: 4 },
+      { p1: { name: "Jhon Barbosa",   hc: 11 }, p2: { name: "Yesid",           hc: 11 }, mesa: 5 },
+      { p1: { name: "Julio",          hc: 11 }, p2: { name: "Leonardo",        hc: 10 }, mesa: 6 },
+      { p1: { name: "Oscar",          hc: 11 }, p2: { name: "Cristian Barbosa",hc: 10 }, mesa: 7 },
     ],
   },
   {
-    time: "7:00 PM",
+    time: "7:10 PM",
     color: "#c084fc",
     label: "Ronda 3",
     matches: [
-      { p1: { name: "Miguel", hc: 17 },            p2: { name: "Oscar", hc: 11 },          mesa: 1 },
-      { p1: { name: "Leonardo", hc: 10 },          p2: { name: "César", hc: 9 },           mesa: 2 },
-      { p1: { name: "Mauricio Velásquez", hc: 9 }, p2: { name: "Por definir", hc: 0 },     mesa: 3 },
-      { p1: { name: "Por definir", hc: 0 },        p2: { name: "Por definir", hc: 0 },     mesa: 4 },
+      { p1: { name: "Miguel",             hc: 17 }, p2: { name: "Mauricio Domínguez", hc: 11 }, mesa: 1 },
+      { p1: { name: "Carlos Barbosa",     hc: 10 }, p2: { name: "Chalo",              hc: 10 }, mesa: 2 },
+      { p1: { name: "Alex Pardo",         hc: 9  }, p2: { name: "Mauricio Velázquez", hc: 8  }, mesa: 3 },
+      { p1: { name: "Jhon Pardo",         hc: 9  }, p2: { name: "Cristian Sierra",    hc: 9  }, mesa: 4 },
+      { p1: { name: "Juan Diego",         hc: 9  }, p2: { name: "Edwin Wilches",      hc: 9  }, mesa: 5 },
+      { p1: { name: "César",              hc: 9  }, p2: { name: "Russi",              hc: 9  }, mesa: 6 },
+      { p1: { name: "Gato",               hc: 15 }, p2: { name: "William",            hc: 13 }, mesa: 7 },
     ],
-    note: "Mesas 5–7 disponibles para repechaje o siguientes rondas",
+    note: "Gato y William juegan una segunda partida para completar las 7 mesas",
   },
 ];
 
@@ -102,12 +115,15 @@ const LEGEND = [
   { hc: 15, label: "HC 15" },
   { hc: 14, label: "HC 14" },
   { hc: 13, label: "HC 13" },
+  { hc: 12, label: "HC 12" },
   { hc: 11, label: "HC 11" },
-  { hc: 9,  label: "HC 10–9" },
+  { hc: 10, label: "HC 10" },
+  { hc: 9,  label: "HC 9"  },
+  { hc: 8,  label: "HC 8"  },
 ];
 
 function HcBadge({ hc }) {
-  const c = HC_COLORS[hc] || HC_COLORS[0];
+  const c = HC_COLORS[hc] || HC_COLORS[8];
   return (
     <div style={{
       minWidth: 30, height: 30, borderRadius: 7,
@@ -115,7 +131,7 @@ function HcBadge({ hc }) {
       display: "flex", alignItems: "center", justifyContent: "center",
       fontSize: 13, fontWeight: 700, flexShrink: 0, fontFamily: F,
     }}>
-      {hc === 0 ? "?" : hc}
+      {hc}
     </div>
   );
 }
@@ -131,17 +147,15 @@ function PlayerRow({ name, hc }) {
       <HcBadge hc={hc} />
       <div>
         <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)", fontFamily: F }}>{name}</div>
-        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: F, marginTop: 1 }}>
-          {hc === 0 ? "Hándicap pendiente" : `Hándicap ${hc}`}
-        </div>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: F, marginTop: 1 }}>Hándicap {hc}</div>
       </div>
     </div>
   );
 }
 
 function MatchCard({ match, num }) {
-  const c1 = HC_COLORS[match.p1.hc] || HC_COLORS[0];
-  const c2 = HC_COLORS[match.p2.hc] || HC_COLORS[0];
+  const c1 = HC_COLORS[match.p1.hc] || HC_COLORS[8];
+  const c2 = HC_COLORS[match.p2.hc] || HC_COLORS[8];
   return (
     <div style={{
       borderRadius: 10, border: "0.5px solid rgba(255,255,255,0.07)",
@@ -150,9 +164,7 @@ function MatchCard({ match, num }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 36px 1fr" }}>
         <div style={{ padding: "11px 13px" }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)", fontFamily: F }}>{match.p1.name}</div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: c1.color, fontFamily: F, marginTop: 2 }}>
-            {match.p1.hc === 0 ? "HC ?" : `HC ${match.p1.hc}`}
-          </div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: c1.color, fontFamily: F, marginTop: 2 }}>HC {match.p1.hc}</div>
         </div>
         <div style={{
           background: "rgba(255,255,255,0.04)", display: "flex",
@@ -162,9 +174,7 @@ function MatchCard({ match, num }) {
         }}>VS</div>
         <div style={{ padding: "11px 13px", textAlign: "right" }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.88)", fontFamily: F }}>{match.p2.name}</div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: c2.color, fontFamily: F, marginTop: 2 }}>
-            {match.p2.hc === 0 ? "HC ?" : `HC ${match.p2.hc}`}
-          </div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: c2.color, fontFamily: F, marginTop: 2 }}>HC {match.p2.hc}</div>
         </div>
       </div>
       <div style={{
@@ -207,7 +217,7 @@ export default function App() {
         </div>
         <div style={{ fontSize: 20, fontWeight: 700, color: "#fff" }}>Billar 3 Bandas con Hándicap</div>
         <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>
-          36 jugadores · 7 mesas · 3 rondas
+          40 jugadores · 7 mesas · 3 rondas · 21 partidas
         </div>
       </div>
 
@@ -220,7 +230,7 @@ export default function App() {
         <div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
             {LEGEND.map(l => {
-              const c = HC_COLORS[l.hc] || HC_COLORS[0];
+              const c = HC_COLORS[l.hc] || HC_COLORS[8];
               return (
                 <div key={l.hc} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "rgba(255,255,255,0.42)" }}>
                   <div style={{ width: 10, height: 10, borderRadius: 3, background: c.color }} />
@@ -250,13 +260,13 @@ export default function App() {
                 </span>
               </div>
               {round.matches.map((m) => {
-                const card = <MatchCard key={matchNum} match={m} num={matchNum} />;
+                const n = matchNum;
                 matchNum++;
-                return card;
+                return <MatchCard key={n} match={m} num={n} />;
               })}
               {round.note && (
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", padding: "6px 4px 0", fontFamily: F }}>
-                  {round.note}
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", padding: "4px 4px 0", fontFamily: F }}>
+                  * {round.note}
                 </div>
               )}
             </div>
@@ -265,7 +275,7 @@ export default function App() {
             fontSize: 10, color: "rgba(255,255,255,0.2)", textAlign: "center",
             paddingTop: 14, borderTop: "0.5px solid rgba(255,255,255,0.06)", marginTop: 14, fontFamily: F,
           }}>
-            18 partidas confirmadas · Miguel juega a las 7:00 PM · 3 jugadores por confirmar
+            21 partidas · 40 jugadores · todos juegan al menos una vez
           </div>
         </div>
       )}
