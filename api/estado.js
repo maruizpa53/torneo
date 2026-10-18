@@ -42,8 +42,10 @@ export default async function handler(req, res) {
         name: String(p.name).trim(),
         cat: String(p.cat || "").slice(0, 20),
         club: String(p.club || "").slice(0, 60),
+        hcp: String(p.hcp || "").slice(0, 4),
       })),
       win: body.win,
+      horas: Array.isArray(body.horas) ? body.horas.slice(0, 64).map((h) => String(h || "").slice(0, 4)) : [],
       updated: new Date().toISOString(),
     };
     const old = await latest();

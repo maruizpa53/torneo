@@ -39,18 +39,18 @@
 
     <section class="panel" id="tJug">
       <h2>Jugadores</h2>
-      <p>Sube la plantilla en Excel: hoja “Fixture”, columnas Llave · Jugador · Categoría · Club. La llave 1 juega contra la 2, la 3 contra la 4… Un cupo vacío o con BYE deja pasar directo a su rival. También se acepta una fila por partida: Partida · Jugador 1 · Categoría · Jugador 2 · Categoría.</p>
+      <p>Sube el cuadro exportado de Google Sheets (columnas RONDA DE 128 / RONDA DE 64 …) o la plantilla: hoja “Fixture”, columnas Llave · Jugador · Categoría · Club. La llave 1 juega contra la 2, la 3 contra la 4… Un cupo vacío o con BYE deja pasar directo a su rival. También se acepta una fila por partida: Partida · Jugador 1 · Categoría · Jugador 2 · Categoría.</p>
       <div class="tools">
         <button class="btn y" id="bXlsx" type="button">Subir Excel</button>
         <input type="file" id="fXlsx" accept=".xlsx,.xls,.csv" hidden>
         <button class="btn" id="bRepo" type="button">Usar datos/fixture.xlsx del sitio</button>
         <span class="msg" id="pinfo"></span>
       </div>
-      <div class="scroll"><table class="players"><thead><tr><th>Llave</th><th>Jugador</th><th>Categoría</th><th>Club</th></tr></thead><tbody id="tbody"></tbody></table></div>
+      <div class="scroll"><table class="players"><thead><tr><th>Llave</th><th>Jugador</th><th>Número</th><th>Categoría</th><th>Club</th></tr></thead><tbody id="tbody"></tbody></table></div>
       <div class="tools" id="pend" hidden>
         <button class="btn y" id="bSave" type="button">Publicar jugadores</button>
         <button class="btn" id="bCancel" type="button">Descartar</button>
-        <span class="msg err">Publicar reemplaza la lista y borra los resultados marcados.</span>
+        <span class="msg err">Publicar reemplaza la lista y los resultados por los del archivo.</span>
       </div>
     </section>
 
@@ -109,13 +109,13 @@ $("tabs").addEventListener("click",e=>{
 
 function drawPlayers(){
   const list=(draft||st).players;
-  $("tbody").innerHTML=list.map((p,i)=>F.isBye(p)?`<tr class="bye"><td>${i+1}</td><td>Libre (BYE)</td><td></td><td></td></tr>`:`<tr><td>${i+1}</td><td>${F.esc(p.name)}</td><td>${F.esc(p.cat)}</td><td>${F.esc(p.club)}</td></tr>`).join("");
+  $("tbody").innerHTML=list.map((p,i)=>F.isBye(p)?`<tr class="bye"><td>${i+1}</td><td>Libre (BYE)</td><td></td><td></td><td></td></tr>`:`<tr><td>${i+1}</td><td>${F.esc(p.name)}</td><td>${F.esc(p.hcp||"")}</td><td>${F.esc(p.cat)}</td><td>${F.esc(p.club)}</td></tr>`).join("");
   const n=list.filter(p=>!F.isBye(p)).length;
   $("pinfo").textContent=(draft?"Vista previa: ":"Publicado: ")+n+" jugadores"+(n<F.N?`, ${F.N-n} cupos libres`:"");
   $("pend").hidden=!draft;
 }
 async function useBuffer(buf,label){
-  try{draft=F.autoByes({players:F.parseWorkbook(buf),win:{}});drawPlayers();say(label+" leído. Revisa la lista y toca “Publicar jugadores”.")}
+  try{draft=F.autoByes(F.parseWorkbook(buf));drawPlayers();say(label+" leído. Revisa la lista y toca “Publicar jugadores”."+(draft.avisos&&draft.avisos.length?" Ojo: "+draft.avisos.join(" · "):""),!!(draft.avisos&&draft.avisos.length))}
   catch(e){say("No se pudo leer "+label+": "+e.message,true)}
 }
 $("bXlsx").onclick=()=>$("fXlsx").click();
@@ -129,7 +129,7 @@ $("bSave").onclick=async()=>{
 
 async function save(ok){
   if(!online){try{localStorage.setItem("dm14.estado",JSON.stringify(st))}catch(e){};say("Guardado solo en este navegador (sin almacenamiento en el sitio).",true);return}
-  try{await api({players:st.players,win:st.win});say(ok+" "+new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}))}
+  try{await api({players:st.players,win:st.win,horas:st.horas||[]});say(ok+" "+new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}))}
   catch(e){say("No se guardó: "+e.message,true)}
 }
 
