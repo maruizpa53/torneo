@@ -1,0 +1,8 @@
+{
+  "name": "copa-dm14-fixture",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@vercel/blob": "1.1.1"
+  }
+}

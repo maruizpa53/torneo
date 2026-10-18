@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>2da Copa DM14</title>
+<meta name="description" content="Fixture de 128 jugadores de la 2da Copa DM14 · Club de Billares OK">
+<link rel="icon" href="img/ok.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@700;800;900&family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,500&family=Barlow:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="app.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <img class="logo" src="img/ok.svg" alt="Club de Billares OK">
+    <div class="titles">
+      <h1><span class="l1">2da Copa DM14</span><span class="l2">Club de <b>Billares OK</b></span></h1>
+      <span class="ribbon" id="ribbon">Ronda de 128 finalistas</span>
+      <div class="meta"><span>2da y 3ra categoría</span><span><strong>$20’000.000</strong> en efectivo</span></div>
+    </div>
+    <img class="logo r" src="img/ok.svg" alt="">
+  </header>
+
+  <div class="stats">
+    <div class="stat"><b id="stAlive">128</b><small>Siguen en carrera</small></div>
+    <div class="stat"><b id="stPlayed">0</b><small>Partidas jugadas</small></div>
+    <div class="stat"><b id="stLeft">127</b><small>Por jugar</small></div>
+  </div>
+
+  <div class="bar">
+    <div class="tabs" id="tabs" role="group" aria-label="Vista"></div>
+    <div class="tools">
+      <select id="round" aria-label="Ronda" hidden></select>
+      <input type="search" id="q" placeholder="Buscar jugador…" aria-label="Buscar jugador">
+    </div>
+  </div>
+  <p class="msg" id="msg" role="status"></p>
+
+  <div class="board" id="board"></div>
+  <div class="lists" id="lists" hidden></div>
+
+  <div class="notice">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffc20e" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="15" height="14" rx="2"/><path d="M3 9h15M7 3v4M14 3v4"/><circle cx="18" cy="17" r="4.2" fill="#070e1c"/><path d="M18 15v2.2l1.4 1"/></svg>
+    <span>Recordamos a los jugadores llegar con 15 minutos de <b>anterioridad y uniforme correspondiente</b> para evitar descalificación</span>
+  </div>
+
+  <div class="sponsors">
+    <img src="logos/andykin.png" alt="Andykin Sports" onerror="this.hidden=true">
+    <img src="logos/dm14.png" alt="DM14 Super Cloth" onerror="this.hidden=true">
+    <img src="logos/drbillards.png" alt="DR Billards" onerror="this.hidden=true">
+  </div>
+
+  <div class="foot">
+    <p id="upd">Llave impar contra llave par: 1 vs 2, 3 vs 4… · Cupo libre: su rival pasa directo</p>
+    <p>Club de Billares OK</p>
+  </div>
+</div>
+
+<script>
+(()=>{
+const F=window.Fixture;
+let st=null,source="",mode="all",round=0,query="",savedRound=false;
+try{mode=sessionStorage.getItem("dm14.view")||mode;const sr=sessionStorage.getItem("dm14.round");if(sr!==null){round=+sr;savedRound=true}}catch(e){}
+const $=id=>document.getElementById(id);
+const VIEWS=[{id:"list",label:"Partidas"},...F.VIEWS];
+VIEWS.forEach(v=>{const b=document.createElement("button");b.textContent=v.label;b.dataset.v=v.id;b.onclick=()=>{mode=v.id;try{sessionStorage.setItem("dm14.view",mode)}catch(e){};draw();$("board").scrollTo(0,0)};$("tabs").appendChild(b)});
+F.ROUNDS.forEach((r,i)=>{const o=document.createElement("option");o.value=i;o.textContent=r;$("round").appendChild(o)});
+$("round").onchange=e=>{round=+e.target.value;try{sessionStorage.setItem("dm14.round",round)}catch(e){};draw()};
+$("q").addEventListener("input",e=>{query=e.target.value;draw()});
+
+function draw(){
+  if(!st)return;
+  $("tabs").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===mode));
+  const list=mode==="list";
+  $("board").hidden=list;$("lists").hidden=!list;$("round").hidden=!list;$("round").value=round;
+  if(list)F.renderLists($("lists"),st,{round,query});
+  else F.renderBracket($("board"),st,{view:mode,query});
+  const s=F.stats(st);
+  $("stAlive").textContent=s.alive;$("stPlayed").textContent=s.played;$("stLeft").textContent=s.left;
+  $("ribbon").textContent=s.left===0?"Campeón definido":s.round==="Ronda de 128"?"Ronda de 128 finalistas":s.round+" en juego";
+}
+
+async function refresh(first){
+  try{
+    const r=await F.loadState();
+    const changed=JSON.stringify(r.state)!==JSON.stringify(st);
+    st=r.state;source=r.source;
+    if(first){const s=F.stats(st);const cur=F.ROUNDS.indexOf(s.round);if(cur>=0&&!savedRound)round=cur}
+    if(changed||first)draw();
+    $("msg").textContent=r.updated?"Actualizado "+new Date(r.updated).toLocaleString("es-CO",{weekday:"long",hour:"2-digit",minute:"2-digit"}):"";
+    $("msg").classList.remove("err");
+  }catch(e){
+    if(first){$("msg").textContent="No se pudo cargar el fixture: "+e.message;$("msg").classList.add("err")}
+  }
+}
+let rt;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(draw,150)});
+refresh(true);
+setInterval(()=>{if(source==="api"&&!document.hidden)refresh(false)},30000);
+})();
+</script>
+</body>
+</html>
