@@ -14,147 +14,187 @@
 <script src="app.js"></script>
 </head>
 <body>
-<div class="wrap">
-  <form class="panel login" id="login">
-    <img src="img/ok.svg" alt="Club de Billares OK" width="120">
-    <h2>Panel del torneo</h2>
-    <p>Ingresa la clave de administrador.</p>
-    <input type="password" id="key" autocomplete="current-password" aria-label="Clave" required>
-    <button class="btn y" type="submit">Entrar</button>
-    <p class="msg" id="lmsg" role="status"></p>
-  </form>
+<form class="panel login" id="login">
+  <img src="img/ok.svg" alt="Club de Billares OK" width="110">
+  <h2>Panel del torneo</h2>
+  <p>Ingresa tu PIN de administrador.</p>
+  <input type="password" id="pin" inputmode="numeric" autocomplete="current-password" aria-label="PIN" required>
+  <button class="btn y" type="submit" id="bIn">Entrar</button>
+  <p class="msg" id="lmsg" role="status"></p>
+</form>
 
-  <div id="app" hidden>
-    <div class="bar">
-      <div class="tabs" id="tabs" role="group" aria-label="Sección">
-        <button data-t="jug" aria-pressed="true">Jugadores</button>
-        <button data-t="res" aria-pressed="false">Resultados</button>
+<div id="app" hidden>
+  <header class="top">
+    <div class="top-in">
+      <div class="brand">
+        <img src="img/ok.svg" alt="">
+        <div><h1>Panel <b>DM14</b></h1><p>Los cambios se publican al instante</p></div>
+      </div>
+      <span class="save" id="save" role="status">Listo</span>
+      <div class="tabs" id="tabs" role="tablist" aria-label="Sección">
+        <button type="button" data-t="res" aria-pressed="true">Resultados</button>
+        <button type="button" data-t="hor" aria-pressed="false">Horarios</button>
+        <button type="button" data-t="jug" aria-pressed="false">Jugadores</button>
       </div>
       <div class="tools">
-        <a class="btn" href="./" target="_blank" rel="noopener">Ver fixture público</a>
-        <button class="btn" id="bOut">Salir</button>
+        <a class="btn" href="./" target="_blank" rel="noopener">Ver página</a>
+        <button class="btn" id="bOut" type="button">Salir</button>
       </div>
     </div>
+  </header>
+
+  <main>
     <p class="msg" id="msg" role="status"></p>
 
-    <section class="panel" id="tJug">
-      <h2>Jugadores</h2>
-      <p>Sube el cuadro exportado de Google Sheets (columnas RONDA DE 128 / RONDA DE 64 …) o la plantilla: hoja “Fixture”, columnas Llave · Jugador · Categoría · Club. La llave 1 juega contra la 2, la 3 contra la 4… Un cupo vacío o con BYE deja pasar directo a su rival. También se acepta una fila por partida: Partida · Jugador 1 · Categoría · Jugador 2 · Categoría.</p>
-      <div class="tools">
-        <button class="btn y" id="bXlsx" type="button">Subir Excel</button>
-        <input type="file" id="fXlsx" accept=".xlsx,.xls,.csv" hidden>
-        <button class="btn" id="bRepo" type="button">Usar datos/fixture.xlsx del sitio</button>
-        <span class="msg" id="pinfo"></span>
-      </div>
-      <div class="scroll"><table class="players"><thead><tr><th>Llave</th><th>Jugador</th><th>Número</th><th>Categoría</th><th>Club</th></tr></thead><tbody id="tbody"></tbody></table></div>
-      <div class="tools" id="pend" hidden>
-        <button class="btn y" id="bSave" type="button">Publicar jugadores</button>
-        <button class="btn" id="bCancel" type="button">Descartar</button>
-        <span class="msg err">Publicar reemplaza la lista y los resultados por los del archivo.</span>
-      </div>
-    </section>
-
-    <section id="tRes" hidden>
-      <div class="bar" style="margin-bottom:10px">
-        <div class="tabs" id="views" role="group" aria-label="Vista del cuadro"></div>
+    <section id="tRes">
+      <div class="bar">
+        <p class="hint">Toca el nombre del ganador. Tócalo otra vez para deshacer.</p>
         <div class="tools">
-          <input type="search" id="q" placeholder="Buscar jugador…" aria-label="Buscar jugador">
+          <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input type="search" id="q" placeholder="Buscar jugador…" aria-label="Buscar jugador"></label>
           <button class="btn" id="bReset" type="button">Borrar resultados</button>
         </div>
       </div>
-      <p class="msg" style="color:var(--steel)">Toca el nombre del ganador de cada partida; se publica al instante. Tócalo otra vez para deshacer.</p>
-      <div class="board" id="board"></div>
+      <div id="board"></div>
     </section>
-  </div>
+
+    <section id="tHor" class="panel" hidden>
+      <div class="bar">
+        <h2>Horarios</h2>
+        <div class="tools">
+          <label class="fld">Ronda <select id="hRound"></select></label>
+          <label class="fld">Fecha para toda la ronda <input type="date" id="hAllDate"></label>
+          <button class="btn" id="hApply" type="button">Aplicar fecha</button>
+        </div>
+      </div>
+      <p>Pon fecha y hora a cada partida. Aparecen en la línea de tiempo de la página pública.</p>
+      <div class="scroll"><table class="players hor"><thead><tr><th>Partida</th><th>Jugadores</th><th>Fecha</th><th>Hora</th><th></th></tr></thead><tbody id="hBody"></tbody></table></div>
+    </section>
+
+    <section id="tJug" class="panel" hidden>
+      <h2>Jugadores</h2>
+      <p>Sube el cuadro exportado de Google Sheets (columnas RONDA DE 128, RONDA DE 64…) o la plantilla con la hoja “Fixture” (Llave · Jugador · Categoría · Club). Revisa la vista previa y publica.</p>
+      <div class="tools">
+        <button class="btn y" id="bXlsx" type="button">Subir Excel</button>
+        <input type="file" id="fXlsx" accept=".xlsx,.xls,.csv" hidden>
+        <button class="btn" id="bRepo" type="button">Usar el Excel del sitio</button>
+        <span class="msg" id="pinfo"></span>
+      </div>
+      <div class="tools" id="pend" hidden>
+        <button class="btn y" id="bSave" type="button">Publicar este cuadro</button>
+        <button class="btn" id="bCancel" type="button">Descartar</button>
+        <span class="msg err">Reemplaza jugadores, resultados y horarios por los del archivo.</span>
+      </div>
+      <div class="scroll"><table class="players"><thead><tr><th>Llave</th><th>Jugador</th><th>Número</th><th>Categoría</th><th>Club</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    </section>
+  </main>
 </div>
 
 <script>
 (()=>{
 const F=window.Fixture,$=id=>document.getElementById(id);
-let key="",st=null,draft=null,view="all",query="",online=true;
-try{key=sessionStorage.getItem("dm14.key")||""}catch(e){}
+let pin="",st=null,draft=null,hRound=0;
+try{pin=sessionStorage.getItem("dm14.pin")||""}catch(e){}
 
 const say=(t,err)=>{$("msg").textContent=t;$("msg").classList.toggle("err",!!err)};
-
-async function api(body){
-  const r=await fetch("/api/estado",{method:"POST",headers:{"content-type":"application/json","x-admin-key":key},body:JSON.stringify(body)});
-  if(!(r.headers.get("content-type")||"").includes("json")){const e=new Error("API no disponible");e.status=0;throw e}
-  const d=await r.json().catch(()=>({}));
-  if(!r.ok){const e=new Error(d.mensaje||("Error "+r.status));e.status=r.status;throw e}
-  return d;
-}
+const saving=(t,cls)=>{const s=$("save");s.textContent=t;s.className="save "+(cls||"")};
 
 async function enter(){
-  try{await api({check:true});online=true}
-  catch(e){
-    if(e.status===401){$("lmsg").textContent="Clave incorrecta.";$("lmsg").classList.add("err");return}
-    online=false;
+  $("bIn").disabled=true;$("lmsg").textContent="Verificando…";$("lmsg").classList.remove("err");
+  try{
+    const ok=await F.checkPin(pin);
+    if(!ok){$("lmsg").textContent="PIN incorrecto.";$("lmsg").classList.add("err");$("bIn").disabled=false;try{sessionStorage.removeItem("dm14.pin")}catch(e){};return}
+  }catch(e){
+    $("lmsg").textContent=e.status===404?"Falta crear la base de datos en Supabase (corre el script SQL).":"No se pudo verificar el PIN: "+e.message;
+    $("lmsg").classList.add("err");$("bIn").disabled=false;return;
   }
-  try{sessionStorage.setItem("dm14.key",key)}catch(e){}
+  try{sessionStorage.setItem("dm14.pin",pin)}catch(e){}
   $("login").hidden=true;$("app").hidden=false;
-  try{const r=await F.loadState();st=r.state}catch(e){say("No se pudo cargar el fixture: "+e.message,true);st=F.autoByes({players:Array.from({length:F.N},F.blank),win:{}})}
-  if(!online)say("El almacenamiento del sitio no está configurado: los cambios solo quedan en este navegador. Revisa BLOB_READ_WRITE_TOKEN y ADMIN_PASSWORD en Vercel.",true);
-  drawPlayers();drawBoard();
+  try{
+    const r=await F.loadState();st=r.state;
+    if(r.source!=="nube")say("Aún no hay datos publicados: cargué el Excel del sitio. Se publicará con tu primer cambio.");
+  }catch(e){say("No se pudo cargar el fixture: "+e.message,true);st=F.autoByes({players:Array.from({length:F.N},F.blank),win:{},hx:{}})}
+  st.hx=st.hx||{};
+  bk.update(st);drawPlayers();drawHor();
 }
-$("login").addEventListener("submit",e=>{e.preventDefault();key=$("key").value;enter()});
-if(key)enter();
-$("bOut").onclick=()=>{try{sessionStorage.removeItem("dm14.key")}catch(e){};location.reload()};
+$("login").addEventListener("submit",e=>{e.preventDefault();pin=$("pin").value.trim();enter()});
+if(pin)enter();
+$("bOut").onclick=()=>{try{sessionStorage.removeItem("dm14.pin")}catch(e){};location.reload()};
 
 $("tabs").addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
   $("tabs").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));
-  $("tJug").hidden=b.dataset.t!=="jug";$("tRes").hidden=b.dataset.t!=="res";
-  if(b.dataset.t==="res")drawBoard();
+  $("tRes").hidden=b.dataset.t!=="res";$("tHor").hidden=b.dataset.t!=="hor";$("tJug").hidden=b.dataset.t!=="jug";
+  if(b.dataset.t==="res")bk.update(st);
+  if(b.dataset.t==="hor")drawHor();
 });
+
+let timer,queued=false,busy=false;
+function save(){clearTimeout(timer);saving("Guardando…","busy");timer=setTimeout(flush,500)}
+async function flush(){
+  if(busy){queued=true;return}
+  busy=true;
+  try{await F.saveState(pin,st);saving("Publicado "+new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}),"ok")}
+  catch(e){saving("No se guardó","err");say("No se guardó: "+e.message+". Revisa tu conexión y vuelve a intentar.",true)}
+  busy=false;if(queued){queued=false;flush()}
+}
+
+const bk=F.bracket($("board"),{editable:true,onPick:(r,m,s)=>{F.pick(st,r,m,s);bk.update(st);save()}});
+$("q").addEventListener("input",e=>bk.setQuery(e.target.value));
+$("bReset").onclick=()=>{
+  const b=$("bReset");
+  if(b.dataset.armed){delete b.dataset.armed;b.textContent="Borrar resultados";st.win={};F.autoByes(st);bk.update(st);save();return}
+  b.dataset.armed=1;b.textContent="¿Seguro? Toca otra vez";
+  setTimeout(()=>{if(b.dataset.armed){delete b.dataset.armed;b.textContent="Borrar resultados"}},3000);
+};
+
+F.ROUNDS.forEach((r,i)=>{const o=document.createElement("option");o.value=i;o.textContent=r;$("hRound").appendChild(o)});
+$("hRound").onchange=e=>{hRound=+e.target.value;drawHor()};
+function drawHor(){
+  if(!st)return;
+  $("hRound").value=hRound;
+  const name=(m,s)=>{const p=F.slot(st,hRound,m,s);return p?(F.isBye(p)?"Libre":F.esc(p.name)):`<i>Ganador P${F.child(hRound,m,s)+1}</i>`};
+  let html="";
+  for(let m=0;m<F.nM(hRound);m++){
+    const {d,t}=F.splitHx(F.horaDe(st,hRound,m));
+    const done=st.win[F.k(hRound,m)]!==undefined;
+    html+=`<tr${done?' class="done"':""}><td>P${m+1}</td><td>${name(m,0)} <b class="vs">vs</b> ${name(m,1)}${done?' <span class="okp">Finalizada</span>':""}</td>
+      <td><input type="date" data-m="${m}" data-f="d" value="${d}" aria-label="Fecha partida ${m+1}"></td>
+      <td><input type="time" step="900" data-m="${m}" data-f="t" value="${t}" aria-label="Hora partida ${m+1}"></td>
+      <td>${t||d?`<button class="btn sm" type="button" data-clear="${m}">Quitar</button>`:""}</td></tr>`;
+  }
+  $("hBody").innerHTML=html;
+}
+$("hBody").addEventListener("change",e=>{
+  const i=e.target.closest("input");if(!i)return;
+  const m=+i.dataset.m,row=i.closest("tr");
+  const d=row.querySelector('[data-f="d"]').value,t=row.querySelector('[data-f="t"]').value;
+  const key=F.k(hRound,m);
+  if(t)st.hx[key]=(d?d+"T":"")+t;else delete st.hx[key];
+  save();
+});
+$("hBody").addEventListener("click",e=>{const b=e.target.closest("[data-clear]");if(!b)return;delete st.hx[F.k(hRound,+b.dataset.clear)];drawHor();save()});
+$("hApply").onclick=()=>{
+  const d=$("hAllDate").value;if(!d){say("Elige una fecha primero.",true);return}
+  let n=0;for(let m=0;m<F.nM(hRound);m++){const key=F.k(hRound,m),v=st.hx[key];if(v){st.hx[key]=d+"T"+F.splitHx(v).t;n++}}
+  drawHor();if(n)save();say(n?`Fecha aplicada a ${n} partidas con hora.`:"Primero pon la hora de las partidas; luego aplica la fecha.",!n);
+};
 
 function drawPlayers(){
   const list=(draft||st).players;
-  $("tbody").innerHTML=list.map((p,i)=>F.isBye(p)?`<tr class="bye"><td>${i+1}</td><td>Libre (BYE)</td><td></td><td></td><td></td></tr>`:`<tr><td>${i+1}</td><td>${F.esc(p.name)}</td><td>${F.esc(p.hcp||"")}</td><td>${F.esc(p.cat)}</td><td>${F.esc(p.club)}</td></tr>`).join("");
+  $("tbody").innerHTML=list.map((p,i)=>F.isBye(p)?`<tr class="bye"><td>${i+1}</td><td>Libre (BYE)</td><td></td><td></td><td></td></tr>`:`<tr><td>${i+1}</td><td>${F.esc(p.name)}</td><td>${F.esc(p.hcp||"")}</td><td>${F.esc(p.cat||"")}</td><td>${F.esc(p.club||"")}</td></tr>`).join("");
   const n=list.filter(p=>!F.isBye(p)).length;
-  $("pinfo").textContent=(draft?"Vista previa: ":"Publicado: ")+n+" jugadores"+(n<F.N?`, ${F.N-n} cupos libres`:"");
+  $("pinfo").textContent=(draft?"Vista previa: ":"Publicado: ")+n+" jugadores";
   $("pend").hidden=!draft;
 }
 async function useBuffer(buf,label){
-  try{draft=F.autoByes(F.parseWorkbook(buf));drawPlayers();say(label+" leído. Revisa la lista y toca “Publicar jugadores”."+(draft.avisos&&draft.avisos.length?" Ojo: "+draft.avisos.join(" · "):""),!!(draft.avisos&&draft.avisos.length))}
+  try{draft=F.autoByes(F.parseWorkbook(buf));drawPlayers();say(label+" leído. Revisa y toca “Publicar este cuadro”."+(draft.avisos&&draft.avisos.length?" Ojo: "+draft.avisos.join(" · "):""),!!(draft.avisos&&draft.avisos.length))}
   catch(e){say("No se pudo leer "+label+": "+e.message,true)}
 }
 $("bXlsx").onclick=()=>$("fXlsx").click();
 $("fXlsx").addEventListener("change",async e=>{const f=e.target.files[0];e.target.value="";if(f)useBuffer(await f.arrayBuffer(),f.name)});
-$("bRepo").onclick=async()=>{const r=await fetch("datos/fixture.xlsx",{cache:"no-store"});if(!r.ok){say("No existe datos/fixture.xlsx en el sitio.",true);return}useBuffer(await r.arrayBuffer(),"datos/fixture.xlsx")};
+$("bRepo").onclick=async()=>{const r=await fetch("datos/fixture.xlsx",{cache:"no-store"});if(!r.ok){say("No existe el Excel en el sitio.",true);return}useBuffer(await r.arrayBuffer(),"El Excel del sitio")};
 $("bCancel").onclick=()=>{draft=null;drawPlayers();say("")};
-$("bSave").onclick=async()=>{
-  st=draft;draft=null;drawPlayers();
-  await save("Jugadores publicados.");
-};
-
-async function save(ok){
-  if(!online){try{localStorage.setItem("dm14.estado",JSON.stringify(st))}catch(e){};say("Guardado solo en este navegador (sin almacenamiento en el sitio).",true);return}
-  try{await api({players:st.players,win:st.win,horas:st.horas||[]});say(ok+" "+new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}))}
-  catch(e){say("No se guardó: "+e.message,true)}
-}
-
-F.VIEWS.forEach(v=>{const b=document.createElement("button");b.textContent=v.label;b.dataset.v=v.id;b.type="button";b.onclick=()=>{view=v.id;drawBoard()};$("views").appendChild(b)});
-function drawBoard(){
-  if(!st)return;
-  $("views").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===view));
-  F.renderBracket($("board"),st,{view,query,editable:true});
-}
-$("q").addEventListener("input",e=>{query=e.target.value;drawBoard()});
-let timer;
-$("board").addEventListener("click",e=>{
-  const b=e.target.closest("button.p");if(!b||b.disabled)return;
-  const sx=$("board").scrollLeft,sy=$("board").scrollTop;
-  F.pick(st,+b.dataset.r,+b.dataset.m,+b.dataset.s);drawBoard();
-  $("board").scrollTo(sx,sy);
-  clearTimeout(timer);timer=setTimeout(()=>save("Resultado publicado."),400);
-});
-$("bReset").onclick=()=>{
-  const b=$("bReset");
-  if(b.dataset.armed){delete b.dataset.armed;b.textContent="Borrar resultados";st.win={};F.autoByes(st);drawBoard();save("Resultados borrados.");return}
-  b.dataset.armed=1;b.textContent="¿Seguro? Toca otra vez";
-  setTimeout(()=>{if(b.dataset.armed){delete b.dataset.armed;b.textContent="Borrar resultados"}},3000);
-};
-let rt;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(drawBoard,150)});
+$("bSave").onclick=()=>{st={players:draft.players,win:draft.win,hx:draft.hx||{}};draft=null;drawPlayers();drawHor();bk.update(st);save()};
 })();
 </script>
 </body>
