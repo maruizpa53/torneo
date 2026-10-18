@@ -173,25 +173,24 @@ function bracket(root,{editable=false,onPick=null}={}){
     cv.style.transform=`scale(${zoom})`;
     root.querySelector(".zv").textContent=Math.round(zoom*100)+"%";
   };
-  const fit=()=>{const w=view.clientWidth-8;return Math.max(.5,Math.min(1,w/W))};
+  const fit=()=>{const w=view.clientWidth-8,f=Math.min(1,w/W);return innerWidth<700?Math.max(f,.82):Math.max(.55,f)};
   function draw(){
     if(!st)return;
     bar.querySelectorAll("[data-from]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.from===from));
     const narrow=innerWidth<700;
-    const colw=narrow?168:184,gap=narrow?22:30,mh=46,unit=from>=3?96:from>=2?80:66,top=46;
-    const side=6-from,cols=2*side+1,perSide=nM(from)/2;
-    H=top+perSide*unit+24;W=cols*colw+(cols-1)*gap;
-    const colX=(r,right)=>(right?2*side-(r-from):(r-from))*(colw+gap);
+    const colw=narrow?176:190,gap=narrow?24:34,mh=46,unit=from>=3?96:from>=2?80:66,top=46;
+    const cols=R-from+1,count=nM(from);
+    H=top+count*unit+16;W=cols*colw+(cols-1)*gap;
+    const colX=r=>(r-from)*(colw+gap);
     const q=norm(query);
     let html="",paths="";
-    for(let r=from;r<=5;r++){
+    for(let r=from;r<R;r++){
       const c=nM(r);
-      html+=`<div class="rh" style="left:${colX(r,0)}px;width:${colw}px">${ROUNDS[r]}<small>${c} ${c===1?"partida":"partidas"}</small></div>`;
-      html+=`<div class="rh r" style="left:${colX(r,1)}px;width:${colw}px">${ROUNDS[r]}<small>${c} ${c===1?"partida":"partidas"}</small></div>`;
+      html+=`<div class="rh${r===6?" gold":""}" style="left:${colX(r)}px;width:${colw}px">${ROUNDS[r]}<small>${c} ${c===1?"partida":"partidas"}</small></div>`;
     }
-    html+=`<div class="rh gold" style="left:${colX(6,0)}px;width:${colw}px">Final</div>`;
+    html+=`<div class="rh gold" style="left:${colX(R)}px;width:${colw}px">Campeón</div>`;
     const pos={};
-    const card=(r,m,x,cy,right)=>{
+    const card=(r,m,x,cy)=>{
       const w=st.win[k(r,m)];
       const rows=[0,1].map(s=>{
         const p=slot(st,r,m,s),bye=p&&isBye(p);
@@ -206,34 +205,25 @@ function bracket(root,{editable=false,onPick=null}={}){
         return `<button type="button" class="${cls.join(" ")}" data-r="${r}" data-m="${m}" data-s="${s}" ${dis?"disabled":""} title="${esc(label)}${p&&p.club?" · "+esc(p.club):""}"><span class="ball" aria-hidden="true"></span><span class="n">${esc(label)}</span>${p&&!bye?tag(p):""}<span class="s">${p?p.llave:""}</span></button>`;
       }).join("");
       const hv=horaDe(st,r,m),hora=hv?fmtT(splitHx(hv).t):"";
-      const done=w!==undefined;
-      return `<div class="m${right?" right":""}${r===6?" final":""}${done?" done":""}" style="left:${x}px;top:${cy-mh/2}px"><span class="lab">P${m+1}${hora?`<i>${hora}</i>`:""}</span>${rows}</div>`;
+      return `<div class="m${r===6?" final":""}${w!==undefined?" done":""}" style="left:${x}px;top:${cy-mh/2}px"><span class="lab">P${m+1}${hora?`<i>${hora}</i>`:""}</span>${rows}</div>`;
     };
-    for(let r=from;r<=5;r++){
-      const n=nM(r),half=n/2,step=1<<(r-from);
-      for(let j=0;j<n;j++){
-        const m=ORDER[r][j],right=j>=half,jj=right?j-half:j;
-        const cy=top+(jj+.5)*step*unit,x=colX(r,right);
+    for(let r=from;r<R;r++){
+      const step=1<<(r-from),x=colX(r);
+      ORDER[r].forEach((m,j)=>{
+        const cy=top+(j+.5)*step*unit;
         pos[k(r,m)]={x,cy};
-        html+=card(r,m,x,cy,right);
+        html+=card(r,m,x,cy);
         if(r>from)for(const s of [0,1]){
           const c=child(r,m,s),a=pos[k(r-1,c)];if(!a)continue;
-          const on=st.win[k(r-1,c)]!==undefined;
-          if(right){const x0=a.x,xm=x0-gap/2;paths+=`<path class="${on?"on":""}" d="M${x0} ${a.cy}H${xm}V${cy}H${x+colw}"/>`}
-          else{const x1=a.x+colw,xm=x1+gap/2;paths+=`<path class="${on?"on":""}" d="M${x1} ${a.cy}H${xm}V${cy}H${x}"/>`}
+          const on=st.win[k(r-1,c)]!==undefined,x1=a.x+colw,xm=x1+gap/2;
+          paths+=`<path class="${on?"on":""}" d="M${x1} ${a.cy}H${xm}V${cy}H${x}"/>`;
         }
-      }
+      });
     }
-    const fx=colX(6,0),fy=top+perSide*unit/2;
-    pos[k(6,0)]={x:fx,cy:fy};
-    html+=card(6,0,fx,fy,false);
-    for(const s of [0,1]){
-      const c=child(6,0,s),a=pos[k(5,c)];if(!a)continue;
-      const on=st.win[k(5,c)]!==undefined;
-      paths+=s?`<path class="${on?"on":""}" d="M${a.x} ${a.cy}H${fx+colw}"/>`:`<path class="${on?"on":""}" d="M${a.x+colw} ${a.cy}H${fx}"/>`;
-    }
+    const f=pos[k(6,0)],cx=colX(R);
     const w6=st.win[k(6,0)],champ=w6!==undefined?slot(st,6,0,w6):null;
-    html+=`<div class="champ${champ?" set":""}" style="left:${fx}px;width:${colw}px;top:${fy-mh/2-128}px"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v3a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 1-3 3M12 12v4M8 20h8M9 16h6v4H9z"/></svg><small>Campeón</small><b>${champ?esc(champ.name):"Por definir"}</b></div>`;
+    paths+=`<path class="${champ?"on":""}" d="M${f.x+colw} ${f.cy}H${cx}"/>`;
+    html+=`<div class="champ${champ?" set":""}" style="left:${cx}px;width:${colw}px;top:${f.cy-56}px"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v3a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 1-3 3M12 12v4M8 20h8M9 16h6v4H9z"/></svg><small>Campeón</small><b>${champ?esc(champ.name):"Por definir"}</b></div>`;
     cv.style.width=W+"px";cv.style.height=H+"px";
     cv.innerHTML=`<svg class="links" width="${W}" height="${H}">${paths}</svg>`+html;
     if(zoom===null||!userZoom)zoom=fit();
