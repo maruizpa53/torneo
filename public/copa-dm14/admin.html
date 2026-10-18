@@ -36,6 +36,7 @@
         <button type="button" data-t="res" aria-pressed="true">Resultados</button>
         <button type="button" data-t="hor" aria-pressed="false">Horarios</button>
         <button type="button" data-t="jug" aria-pressed="false">Jugadores</button>
+        <button type="button" data-t="pin" aria-pressed="false">PIN</button>
       </div>
       <div class="tools">
         <a class="btn" href="./" target="_blank" rel="noopener">Ver página</a>
@@ -87,6 +88,15 @@
       </div>
       <div class="scroll"><table class="players"><thead><tr><th>Llave</th><th>Jugador</th><th>Número</th><th>Categoría</th><th>Club</th></tr></thead><tbody id="tbody"></tbody></table></div>
     </section>
+    <section id="tPin" class="panel" hidden>
+      <h2>Cambiar PIN</h2>
+      <p>Mínimo 6 caracteres. El PIN anterior deja de funcionar de inmediato.</p>
+      <form class="tools" id="fPin">
+        <input type="password" id="pinNew" inputmode="numeric" autocomplete="new-password" placeholder="PIN nuevo" aria-label="PIN nuevo" minlength="6" required>
+        <input type="password" id="pinNew2" inputmode="numeric" autocomplete="new-password" placeholder="Repite el PIN" aria-label="Repite el PIN nuevo" minlength="6" required>
+        <button class="btn y" type="submit">Cambiar PIN</button>
+      </form>
+    </section>
   </main>
 </div>
 
@@ -124,7 +134,7 @@ $("bOut").onclick=()=>{try{sessionStorage.removeItem("dm14.pin")}catch(e){};loca
 $("tabs").addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
   $("tabs").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));
-  $("tRes").hidden=b.dataset.t!=="res";$("tHor").hidden=b.dataset.t!=="hor";$("tJug").hidden=b.dataset.t!=="jug";
+  $("tRes").hidden=b.dataset.t!=="res";$("tHor").hidden=b.dataset.t!=="hor";$("tJug").hidden=b.dataset.t!=="jug";$("tPin").hidden=b.dataset.t!=="pin";
   if(b.dataset.t==="res")bk.update(st);
   if(b.dataset.t==="hor")drawHor();
 });
@@ -195,6 +205,14 @@ $("bXlsx").onclick=()=>$("fXlsx").click();
 $("fXlsx").addEventListener("change",async e=>{const f=e.target.files[0];e.target.value="";if(f)useBuffer(await f.arrayBuffer(),f.name)});
 $("bRepo").onclick=async()=>{const r=await fetch("datos/fixture.xlsx",{cache:"no-store"});if(!r.ok){say("No existe el Excel en el sitio.",true);return}useBuffer(await r.arrayBuffer(),"El Excel del sitio")};
 $("bCancel").onclick=()=>{draft=null;drawPlayers();say("")};
+$("fPin").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const a=$("pinNew").value.trim(),b=$("pinNew2").value.trim();
+  if(a.length<6){say("El PIN nuevo debe tener al menos 6 caracteres.",true);return}
+  if(a!==b){say("Los dos PIN no coinciden.",true);return}
+  try{await F.changePin(pin,a);pin=a;try{sessionStorage.setItem("dm14.pin",pin)}catch(e){};$("fPin").reset();say("PIN cambiado. Usa el nuevo la próxima vez que entres.")}
+  catch(err){say("No se cambió el PIN: "+err.message,true)}
+});
 $("bSave").onclick=()=>{st={players:draft.players,win:draft.win,hx:draft.hx||{}};draft=null;drawPlayers();drawHor();bk.update(st);save()};
 })();
 </script>
