@@ -121,6 +121,7 @@ async function sbRpc(fn,body){
   return d;
 }
 const checkPin=pin=>sbRpc("copa_dm14_check",{pin});
+const changePin=(pin,nuevo)=>sbRpc("copa_dm14_cambiar_pin",{pin,nuevo});
 async function saveState(pin,st){
   const datos={players:st.players.map(p=>({name:p.name,cat:p.cat||"",club:p.club||"",hcp:p.hcp||""})),win:st.win,hx:st.hx||{}};
   return sbRpc("copa_dm14_guardar",{pin,datos});
@@ -305,5 +306,5 @@ function timeline(el,st,{query=""}={}){
   if(hit&&q)hit.scrollIntoView({block:"center",behavior:"smooth"});
 }
 
-window.Fixture={N,R,ROUNDS,SHORT,FROM,FECHA_R128,blank,isBye,esc,k,nM,child,slot,autoByes,pick,parseRows,parseWorkbook,loadState,stats,bracket,timeline,horaTxt,horaDe,splitHx,checkPin,saveState};
+window.Fixture={N,R,ROUNDS,SHORT,FROM,FECHA_R128,blank,isBye,esc,k,nM,child,slot,autoByes,pick,parseRows,parseWorkbook,loadState,stats,bracket,timeline,horaTxt,horaDe,splitHx,checkPin,changePin,saveState};
 })();
