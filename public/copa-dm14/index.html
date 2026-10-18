@@ -15,82 +15,78 @@
 <script src="app.js"></script>
 </head>
 <body>
-<div class="wrap">
-  <header class="hero">
-    <img class="logo" src="img/ok.svg" alt="Club de Billares OK">
-    <div class="titles">
-      <h1><span class="l1">2da Copa DM14</span><span class="l2">Club de <b>Billares OK</b></span></h1>
-      <span class="ribbon" id="ribbon">Ronda de 128 finalistas</span>
-      <div class="meta"><span>2da y 3ra categoría</span><span><strong>$20’000.000</strong> en efectivo</span></div>
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <img src="img/ok.svg" alt="Club de Billares OK">
+      <div>
+        <h1>2da Copa <b>DM14</b></h1>
+        <p>Club de Billares OK · 2da y 3ra categoría · <strong>$20’000.000</strong> en efectivo</p>
+      </div>
     </div>
-    <img class="logo r" src="img/ok.svg" alt="">
-  </header>
-
-  <div class="stats">
-    <div class="stat"><b id="stAlive">128</b><small>Siguen en carrera</small></div>
-    <div class="stat"><b id="stPlayed">0</b><small>Partidas jugadas</small></div>
-    <div class="stat"><b id="stLeft">127</b><small>Por jugar</small></div>
-  </div>
-
-  <div class="bar">
-    <div class="tabs" id="tabs" role="group" aria-label="Vista"></div>
-    <div class="tools">
-      <select id="round" aria-label="Ronda" hidden></select>
-      <input type="search" id="q" placeholder="Buscar jugador…" aria-label="Buscar jugador">
+    <div class="chips" aria-label="Resumen">
+      <span class="chip y"><b id="stRound">R128</b>en juego</span>
+      <span class="chip"><b id="stAlive">128</b>vivos</span>
+      <span class="chip"><b id="stPlayed">0</b>jugadas</span>
     </div>
+    <div class="tabs" role="tablist" aria-label="Sección">
+      <button type="button" data-tab="fixture" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M3 5h5v4H3zM3 15h5v4H3zM8 7h3v10H8M11 12h4M15 10h6v4h-6z"/></svg>Fixture</button>
+      <button type="button" data-tab="horarios" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Horarios</button>
+    </div>
+    <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input type="search" id="q" placeholder="Buscar jugador…" aria-label="Buscar jugador"></label>
   </div>
+</header>
+
+<main>
   <p class="msg" id="msg" role="status"></p>
+  <section id="pFixture"></section>
+  <section id="pHorarios" hidden></section>
 
-  <div class="board" id="board"></div>
-  <div class="lists" id="lists" hidden></div>
-
-  <div class="notice">
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffc20e" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="15" height="14" rx="2"/><path d="M3 9h15M7 3v4M14 3v4"/><circle cx="18" cy="17" r="4.2" fill="#070e1c"/><path d="M18 15v2.2l1.4 1"/></svg>
-    <span>Recordamos a los jugadores llegar con 15 minutos de <b>anterioridad y uniforme correspondiente</b> para evitar descalificación</span>
-  </div>
-
-  <div class="sponsors">
-    <img src="logos/andykin.png" alt="Andykin Sports" onerror="this.hidden=true">
-    <img src="logos/dm14.png" alt="DM14 Super Cloth" onerror="this.hidden=true">
-    <img src="logos/drbillards.png" alt="DR Billards" onerror="this.hidden=true">
-  </div>
-
-  <div class="foot">
-    <p id="upd">Llave impar contra llave par: 1 vs 2, 3 vs 4… · Cupo libre: su rival pasa directo</p>
-    <p>Club de Billares OK</p>
-  </div>
-</div>
+  <footer class="foot">
+    <div class="notice">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ffc20e" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="15" height="14" rx="2"/><path d="M3 9h15M7 3v4M14 3v4"/><circle cx="18" cy="17" r="4.2" fill="#050b17"/><path d="M18 15v2.2l1.4 1"/></svg>
+      <span>Llegar con 15 minutos de <b>anterioridad y uniforme correspondiente</b> para evitar descalificación</span>
+    </div>
+    <div class="sponsors">
+      <img src="logos/andykin.png" alt="Andykin Sports" onerror="this.hidden=true">
+      <img src="logos/dm14.png" alt="DM14 Super Cloth" onerror="this.hidden=true">
+      <img src="logos/drbillards.png" alt="DR Billards" onerror="this.hidden=true">
+    </div>
+  </footer>
+</main>
 
 <script>
 (()=>{
-const F=window.Fixture;
-let st=null,source="",mode="all",round=0,query="",savedRound=false;
-try{mode=sessionStorage.getItem("dm14.view")||mode;const sr=sessionStorage.getItem("dm14.round");if(sr!==null){round=+sr;savedRound=true}}catch(e){}
-const $=id=>document.getElementById(id);
-const VIEWS=[{id:"list",label:"Partidas"},...F.VIEWS];
-VIEWS.forEach(v=>{const b=document.createElement("button");b.textContent=v.label;b.dataset.v=v.id;b.onclick=()=>{mode=v.id;try{sessionStorage.setItem("dm14.view",mode)}catch(e){};draw();$("board").scrollTo(0,0)};$("tabs").appendChild(b)});
-F.ROUNDS.forEach((r,i)=>{const o=document.createElement("option");o.value=i;o.textContent=r;$("round").appendChild(o)});
-$("round").onchange=e=>{round=+e.target.value;try{sessionStorage.setItem("dm14.round",round)}catch(e){};draw()};
-$("q").addEventListener("input",e=>{query=e.target.value;draw()});
+const F=window.Fixture,$=id=>document.getElementById(id);
+let st=null,source="",tab="fixture",query="";
+try{tab=sessionStorage.getItem("dm14.tab")||tab}catch(e){}
+const bk=F.bracket($("pFixture"));
 
+function showTab(){
+  document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tab===tab));
+  $("pFixture").hidden=tab!=="fixture";$("pHorarios").hidden=tab!=="horarios";
+}
 function draw(){
   if(!st)return;
-  $("tabs").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===mode));
-  const list=mode==="list";
-  $("board").hidden=list;$("lists").hidden=!list;$("round").hidden=!list;$("round").value=round;
-  if(list)F.renderLists($("lists"),st,{round,query});
-  else F.renderBracket($("board"),st,{view:mode,query});
-  const s=F.stats(st);
-  $("stAlive").textContent=s.alive;$("stPlayed").textContent=s.played;$("stLeft").textContent=s.left;
-  $("ribbon").textContent=s.left===0?"Campeón definido":s.round==="Ronda de 128"?"Ronda de 128 finalistas":s.round+" en juego";
+  showTab();
+  bk.update(st);
+  F.timeline($("pHorarios"),st,{query});
+  const s=F.stats(st),cur=F.ROUNDS.indexOf(s.round);
+  $("stRound").textContent=s.left===0?"Fin":cur>=0?F.SHORT[cur]:"—";
+  $("stAlive").textContent=s.alive;$("stPlayed").textContent=s.played;
 }
+document.querySelector(".tabs").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  tab=b.dataset.tab;try{sessionStorage.setItem("dm14.tab",tab)}catch(e){}
+  showTab();if(tab==="fixture")bk.update(st);
+});
+let qt;$("q").addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{query=e.target.value;bk.setQuery(query);F.timeline($("pHorarios"),st,{query})},180)});
 
 async function refresh(first){
   try{
     const r=await F.loadState();
     const changed=JSON.stringify(r.state)!==JSON.stringify(st);
     st=r.state;source=r.source;
-    if(first){const s=F.stats(st);const cur=F.ROUNDS.indexOf(s.round);if(cur>=0&&!savedRound)round=cur}
     if(changed||first)draw();
     $("msg").textContent=r.updated?"Actualizado "+new Date(r.updated).toLocaleString("es-CO",{weekday:"long",hour:"2-digit",minute:"2-digit"}):"";
     $("msg").classList.remove("err");
@@ -98,9 +94,8 @@ async function refresh(first){
     if(first){$("msg").textContent="No se pudo cargar el fixture: "+e.message;$("msg").classList.add("err")}
   }
 }
-let rt;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(draw,150)});
 refresh(true);
-setInterval(()=>{if(source==="api"&&!document.hidden)refresh(false)},30000);
+setInterval(()=>{if(source==="nube"&&!document.hidden)refresh(false)},20000);
 })();
 </script>
 </body>
