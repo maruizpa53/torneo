@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<base href="/copa-dm14/">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Panel · 2da Copa DM14</title>
+<link rel="icon" href="img/ok.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@700;800;900&family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,500&family=Barlow:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="app.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <form class="panel login" id="login">
+    <img src="img/ok.svg" alt="Club de Billares OK" width="120">
+    <h2>Panel del torneo</h2>
+    <p>Ingresa la clave de administrador.</p>
+    <input type="password" id="key" autocomplete="current-password" aria-label="Clave" required>
+    <button class="btn y" type="submit">Entrar</button>
+    <p class="msg" id="lmsg" role="status"></p>
+  </form>
+
+  <div id="app" hidden>
+    <div class="bar">
+      <div class="tabs" id="tabs" role="group" aria-label="Sección">
+        <button data-t="jug" aria-pressed="true">Jugadores</button>
+        <button data-t="res" aria-pressed="false">Resultados</button>
+      </div>
+      <div class="tools">
+        <a class="btn" href="./" target="_blank" rel="noopener">Ver fixture público</a>
+        <button class="btn" id="bOut">Salir</button>
+      </div>
+    </div>
+    <p class="msg" id="msg" role="status"></p>
+
+    <section class="panel" id="tJug">
+      <h2>Jugadores</h2>
+      <p>Sube la plantilla en Excel: hoja “Fixture”, columnas Llave · Jugador · Categoría · Club. La llave 1 juega contra la 2, la 3 contra la 4… Un cupo vacío o con BYE deja pasar directo a su rival. También se acepta una fila por partida: Partida · Jugador 1 · Categoría · Jugador 2 · Categoría.</p>
+      <div class="tools">
+        <button class="btn y" id="bXlsx" type="button">Subir Excel</button>
+        <input type="file" id="fXlsx" accept=".xlsx,.xls,.csv" hidden>
+        <button class="btn" id="bRepo" type="button">Usar datos/fixture.xlsx del sitio</button>
+        <span class="msg" id="pinfo"></span>
+      </div>
+      <div class="scroll"><table class="players"><thead><tr><th>Llave</th><th>Jugador</th><th>Categoría</th><th>Club</th></tr></thead><tbody id="tbody"></tbody></table></div>
+      <div class="tools" id="pend" hidden>
+        <button class="btn y" id="bSave" type="button">Publicar jugadores</button>
+        <button class="btn" id="bCancel" type="button">Descartar</button>
+        <span class="msg err">Publicar reemplaza la lista y borra los resultados marcados.</span>
+      </div>
+    </section>
+
+    <section id="tRes" hidden>
+      <div class="bar" style="margin-bottom:10px">
+        <div class="tabs" id="views" role="group" aria-label="Vista del cuadro"></div>
+        <div class="tools">
+          <input type="search" id="q" placeholder="Buscar jugador…" aria-label="Buscar jugador">
+          <button class="btn" id="bReset" type="button">Borrar resultados</button>
+        </div>
+      </div>
+      <p class="msg" style="color:var(--steel)">Toca el nombre del ganador de cada partida; se publica al instante. Tócalo otra vez para deshacer.</p>
+      <div class="board" id="board"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(()=>{
+const F=window.Fixture,$=id=>document.getElementById(id);
+let key="",st=null,draft=null,view="all",query="",online=true;
+try{key=sessionStorage.getItem("dm14.key")||""}catch(e){}
+
+const say=(t,err)=>{$("msg").textContent=t;$("msg").classList.toggle("err",!!err)};
+
+async function api(body){
+  const r=await fetch("/api/estado",{method:"POST",headers:{"content-type":"application/json","x-admin-key":key},body:JSON.stringify(body)});
+  if(!(r.headers.get("content-type")||"").includes("json")){const e=new Error("API no disponible");e.status=0;throw e}
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok){const e=new Error(d.mensaje||("Error "+r.status));e.status=r.status;throw e}
+  return d;
+}
+
+async function enter(){
+  try{await api({check:true});online=true}
+  catch(e){
+    if(e.status===401){$("lmsg").textContent="Clave incorrecta.";$("lmsg").classList.add("err");return}
+    online=false;
+  }
+  try{sessionStorage.setItem("dm14.key",key)}catch(e){}
+  $("login").hidden=true;$("app").hidden=false;
+  try{const r=await F.loadState();st=r.state}catch(e){say("No se pudo cargar el fixture: "+e.message,true);st=F.autoByes({players:Array.from({length:F.N},F.blank),win:{}})}
+  if(!online)say("El almacenamiento del sitio no está configurado: los cambios solo quedan en este navegador. Revisa BLOB_READ_WRITE_TOKEN y ADMIN_PASSWORD en Vercel.",true);
+  drawPlayers();drawBoard();
+}
+$("login").addEventListener("submit",e=>{e.preventDefault();key=$("key").value;enter()});
+if(key)enter();
+$("bOut").onclick=()=>{try{sessionStorage.removeItem("dm14.key")}catch(e){};location.reload()};
+
+$("tabs").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  $("tabs").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  $("tJug").hidden=b.dataset.t!=="jug";$("tRes").hidden=b.dataset.t!=="res";
+  if(b.dataset.t==="res")drawBoard();
+});
+
+function drawPlayers(){
+  const list=(draft||st).players;
+  $("tbody").innerHTML=list.map((p,i)=>F.isBye(p)?`<tr class="bye"><td>${i+1}</td><td>Libre (BYE)</td><td></td><td></td></tr>`:`<tr><td>${i+1}</td><td>${F.esc(p.name)}</td><td>${F.esc(p.cat)}</td><td>${F.esc(p.club)}</td></tr>`).join("");
+  const n=list.filter(p=>!F.isBye(p)).length;
+  $("pinfo").textContent=(draft?"Vista previa: ":"Publicado: ")+n+" jugadores"+(n<F.N?`, ${F.N-n} cupos libres`:"");
+  $("pend").hidden=!draft;
+}
+async function useBuffer(buf,label){
+  try{draft=F.autoByes({players:F.parseWorkbook(buf),win:{}});drawPlayers();say(label+" leído. Revisa la lista y toca “Publicar jugadores”.")}
+  catch(e){say("No se pudo leer "+label+": "+e.message,true)}
+}
+$("bXlsx").onclick=()=>$("fXlsx").click();
+$("fXlsx").addEventListener("change",async e=>{const f=e.target.files[0];e.target.value="";if(f)useBuffer(await f.arrayBuffer(),f.name)});
+$("bRepo").onclick=async()=>{const r=await fetch("datos/fixture.xlsx",{cache:"no-store"});if(!r.ok){say("No existe datos/fixture.xlsx en el sitio.",true);return}useBuffer(await r.arrayBuffer(),"datos/fixture.xlsx")};
+$("bCancel").onclick=()=>{draft=null;drawPlayers();say("")};
+$("bSave").onclick=async()=>{
+  st=draft;draft=null;drawPlayers();
+  await save("Jugadores publicados.");
+};
+
+async function save(ok){
+  if(!online){try{localStorage.setItem("dm14.estado",JSON.stringify(st))}catch(e){};say("Guardado solo en este navegador (sin almacenamiento en el sitio).",true);return}
+  try{await api({players:st.players,win:st.win});say(ok+" "+new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}))}
+  catch(e){say("No se guardó: "+e.message,true)}
+}
+
+F.VIEWS.forEach(v=>{const b=document.createElement("button");b.textContent=v.label;b.dataset.v=v.id;b.type="button";b.onclick=()=>{view=v.id;drawBoard()};$("views").appendChild(b)});
+function drawBoard(){
+  if(!st)return;
+  $("views").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===view));
+  F.renderBracket($("board"),st,{view,query,editable:true});
+}
+$("q").addEventListener("input",e=>{query=e.target.value;drawBoard()});
+let timer;
+$("board").addEventListener("click",e=>{
+  const b=e.target.closest("button.p");if(!b||b.disabled)return;
+  const sx=$("board").scrollLeft,sy=$("board").scrollTop;
+  F.pick(st,+b.dataset.r,+b.dataset.m,+b.dataset.s);drawBoard();
+  $("board").scrollTo(sx,sy);
+  clearTimeout(timer);timer=setTimeout(()=>save("Resultado publicado."),400);
+});
+$("bReset").onclick=()=>{
+  const b=$("bReset");
+  if(b.dataset.armed){delete b.dataset.armed;b.textContent="Borrar resultados";st.win={};F.autoByes(st);drawBoard();save("Resultados borrados.");return}
+  b.dataset.armed=1;b.textContent="¿Seguro? Toca otra vez";
+  setTimeout(()=>{if(b.dataset.armed){delete b.dataset.armed;b.textContent="Borrar resultados"}},3000);
+};
+let rt;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(drawBoard,150)});
+})();
+</script>
+</body>
+</html>

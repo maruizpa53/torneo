@@ -1,5 +1,8 @@
 {
   "rewrites": [
+    { "source": "/copa-dm14", "destination": "/copa-dm14/index.html" },
+    { "source": "/copa-dm14/", "destination": "/copa-dm14/index.html" },
+    { "source": "/copa-dm14/admin", "destination": "/copa-dm14/admin.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
