@@ -31,7 +31,7 @@
         <button data-t="res" aria-pressed="false">Resultados</button>
       </div>
       <div class="tools">
-        <a class="btn" href="/" target="_blank" rel="noopener">Ver fixture público</a>
+        <a class="btn" href="./" target="_blank" rel="noopener">Ver fixture público</a>
         <button class="btn" id="bOut">Salir</button>
       </div>
     </div>
@@ -78,6 +78,7 @@ const say=(t,err)=>{$("msg").textContent=t;$("msg").classList.toggle("err",!!err
 
 async function api(body){
   const r=await fetch("/api/estado",{method:"POST",headers:{"content-type":"application/json","x-admin-key":key},body:JSON.stringify(body)});
+  if(!(r.headers.get("content-type")||"").includes("json")){const e=new Error("API no disponible");e.status=0;throw e}
   const d=await r.json().catch(()=>({}));
   if(!r.ok){const e=new Error(d.mensaje||("Error "+r.status));e.status=r.status;throw e}
   return d;
