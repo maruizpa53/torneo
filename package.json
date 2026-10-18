@@ -2,6 +2,9 @@
   "name": "copa-dm14-fixture",
   "private": true,
   "type": "module",
+  "scripts": {
+    "build": "rm -rf dist && mkdir -p dist && cp -r index.html admin.html app.js app.css img datos dist/ && if [ -d logos ]; then cp -r logos dist/; fi"
+  },
   "dependencies": {
     "@vercel/blob": "1.1.1"
   }
