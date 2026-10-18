@@ -81,6 +81,7 @@ svg.links path.on{stroke:var(--cyan);stroke-width:2.2}
 .p .s{font-family:var(--display);font-weight:700;font-size:11px;color:var(--steel);width:30px;flex:none;align-self:stretch;display:grid;place-items:center;background:rgb(41 182 246 / .1);font-variant-numeric:tabular-nums}
 .p .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .p .c{flex:none;font-family:var(--display);font-weight:800;font-size:9px;letter-spacing:.06em;padding:1px 4px;border-radius:2px;background:var(--cyan);color:#06101f}
+.p .c.h{background:transparent;box-shadow:0 0 0 1px var(--steel) inset;color:var(--steel)}
 .p .c.c3{background:transparent;box-shadow:0 0 0 1px var(--yellow) inset;color:var(--yellow)}
 .editable .p:not(:disabled){cursor:pointer}
 .editable .p:hover:not(:disabled){background:rgb(41 182 246 / .22)}
@@ -105,7 +106,7 @@ svg.links path.on{stroke:var(--cyan);stroke-width:2.2}
 .card ol{list-style:none;margin:0;padding:6px 10px 10px;display:grid}
 .card li{display:grid;grid-template-columns:1fr 34px 1fr;align-items:center;gap:6px;padding:5px 4px;font-family:var(--name);font-weight:600;font-size:15px;text-transform:uppercase;text-align:center;border-bottom:1px solid var(--line)}
 .card li:nth-child(even){background:var(--row-alt)}
-.card li .vs{font-family:var(--display);font-weight:900;font-style:italic;color:var(--yellow)}
+.card li .vs{font-family:var(--display);font-weight:900;font-style:italic;color:var(--yellow);display:grid;line-height:1.1}
 .card li span{min-width:0;overflow-wrap:anywhere}
 .card li .w{color:var(--yellow)}
 .card li .l{color:var(--lose);text-decoration:line-through}
